@@ -22,13 +22,11 @@
 
 package tigase.monitor;
 
-//~--- non-JDK imports --------------------------------------------------------
-
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 
-import tigase.client.fw.BackendService;
-import tigase.client.fw.ClientModule;
+//import tigase.client.fw.BackendService;
+//import tigase.client.fw.ClientModule;
 
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
@@ -43,8 +41,6 @@ import tigase.monitor.panel.TigaseTextMonitor;
 import tigase.monitor.util.MFileChooser;
 
 import tigase.stats.JavaJMXProxy;
-
-//~--- JDK imports ------------------------------------------------------------
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -86,7 +82,7 @@ import javax.swing.JTextField;
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
-public class ClientModuleImpl implements ClientModule, ActionListener {
+public class ClientModuleImpl implements ActionListener {
 	private static final String EXPORT_TO_PNG_CMD = "export-to-png";
 	private static final String EXPORT_TO_JPG_CMD = "export-to-jpg";
 	private static final String AUTO_EXPORT_TIMER_CMD = "auto-export-timer";
@@ -156,15 +152,15 @@ public class ClientModuleImpl implements ClientModule, ActionListener {
 
 	//~--- get methods ----------------------------------------------------------
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
-	public Map<String, BackendService> getBackendServices() {
-		return null;
-	}
+//	/**
+//	 * Method description
+//	 *
+//	 *
+//	 * @return
+//	 */
+//	public Map<String, BackendService> getBackendServices() {
+//		return null;
+//	}
 
 	/**
 	 * Method description

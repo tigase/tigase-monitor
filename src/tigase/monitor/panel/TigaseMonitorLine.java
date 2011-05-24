@@ -22,8 +22,6 @@
 
 package tigase.monitor.panel;
 
-//~--- non-JDK imports --------------------------------------------------------
-
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -37,8 +35,6 @@ import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.RectangleInsets;
-
-//~--- JDK imports ------------------------------------------------------------
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -54,8 +50,6 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Created: Sep 9, 2009 11:47:00 PM
  *
@@ -66,7 +60,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 	private long max = 0;
 
 	// By default max item age is 1 day
-	private long maxItemAge = 60 * 60 * 24;
+//	private long maxItemAge = 60 * 60 * 24;
+	private long maxItemAge = 60;
 	private int max_history_size = 14400;
 	private JPanel panel = null;
 	private int refresh_cnt = 0;
@@ -79,8 +74,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 	private DateAxis xAxis = null;
 	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-	//~--- constructors ---------------------------------------------------------
 
 	/**
 	 * Constructs ...
@@ -189,8 +182,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------------
-
 	/**
 	 * Method description
 	 *
@@ -210,8 +201,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 	public JPanel getPanel() {
 		return panel;
 	}
-
-	//~--- methods --------------------------------------------------------------
 
 	/**
 	 * Method description
@@ -263,8 +252,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	//~--- set methods ----------------------------------------------------------
-
 	/**
 	 * Method description
 	 *
@@ -287,8 +274,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 			System.err.println("Can't find series! " + key);
 		}
 	}
-
-	//~--- methods --------------------------------------------------------------
 
 	private void addValue(String key, long time, double val, boolean notify, TimeSeries series) {
 		RegularTimePeriod rtp = new Second(new Date(time));
@@ -357,9 +342,3 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		return chart;
 	}
 }
-
-
-//~ Formatted in Sun Code Convention
-
-
-//~ Formatted by Jindent --- http://www.jindent.com
