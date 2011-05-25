@@ -71,4 +71,5 @@
     nbproject/build-impl.xml file. 
 
     -->
+   <target name="jar-dist" depends="-do-jar-with-libraries"/>
 </project>
