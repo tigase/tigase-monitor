@@ -23,6 +23,7 @@
 package tigase.monitor.panel;
 
 import java.awt.Color;
+
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -42,11 +43,13 @@ import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import org.jfree.chart.JFreeChart;
 import tigase.monitor.conf.NodeConfig;
-import tigase.stats.StatisticsProviderMBean;
+import tigase.stats.JavaJMXProxyOpt;
+
+import static tigase.monitor.panel.DataChangeListener.*;
 
 /**
  * Created: Sep 12, 2009 11:52:57 AM
- *
+ * 
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 6 $
  */
@@ -65,12 +68,24 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	private JLabel clCache = null;
 	private JTextArea details = null;
 	private JPanel panel = null;
-	
-	public TigaseTextMonitor(String id, List<NodeConfig> nodeConfigs) {
+	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, SM_TRAFFIC_R,
+			SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R,
+			CL_TRAFFIC_S, CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT };
+	private long old_sm_traffic = 0;
+	private long old_cl_traffic = 0;
+
+	public String[] getMetricsKeys() {
+		return metrics;
+	}
+
+	public TigaseTextMonitor(String id, List<NodeConfig> nodeConfigs, int updaterate,
+			int serverUpdaterare) {
+		super("Text: " + id, updaterate, serverUpdaterare);
 		this.id = id;
 		Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-		title = BorderFactory.createTitledBorder(loweredetched, "initialization...",
-				TitledBorder.LEFT, TitledBorder.CENTER);
+		title =
+				BorderFactory.createTitledBorder(loweredetched, "initialization...",
+						TitledBorder.LEFT, TitledBorder.CENTER);
 		panel = new JPanel();
 		panel.setBorder(title);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
@@ -97,7 +112,8 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		mainStats.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
 		cpu = new JLabel("CPU: -%");
-		Font myLabelfont = new Font(cpu.getFont().getName(), Font.BOLD, cpu.getFont().getSize()-1);
+		Font myLabelfont =
+				new Font(cpu.getFont().getName(), Font.BOLD, cpu.getFont().getSize() - 1);
 		cpu.setFont(myLabelfont);
 		cpu.setForeground(labelCol);
 		mainStats.add(cpu);
@@ -140,78 +156,99 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		panel.add(mainStats);
 
 		details = new JTextArea("Waiting for data from the server", 50, 100);
-		Font detailsFont = new Font(details.getFont().getName(), details.getFont().getStyle(),
-				details.getFont().getSize()-2);
+		Font detailsFont =
+				new Font(details.getFont().getName(), details.getFont().getStyle(), details
+						.getFont().getSize() - 2);
 		details.setFont(detailsFont);
 		details.setBackground(new Color(0.15f, 0.15f, 0.15f));
 		details.setForeground(Color.LIGHT_GRAY);
 		details.setEditable(false);
 		panel.add(details);
-		panel.setMaximumSize(new Dimension(1920/5, 600));
+		panel.setMaximumSize(new Dimension(1920 / 5, 600));
 	}
 
-	@Override
-	public void update(String id, StatisticsProviderMBean servBean) {
+	public void update(String id, JavaJMXProxyOpt servBean) {
 		Color labelCol = Color.LIGHT_GRAY;
 		if (id.equals(this.id)) {
 			details.setText(servBean.getSystemDetails());
-			String s = MessageFormat.format("CPU: {0,number,#.#}%", servBean.getCPUUsage());
+			float tmp = (Float) servBean.getMetricData(CPU_USAGE);
+			String s = MessageFormat.format("CPU: {0,number,#.#}%", tmp);
 			cpu.setText(s);
-			if (servBean.getCPUUsage() > 60f) {
+			if (tmp > 60f) {
 				cpu.setForeground(Color.red);
 			} else {
 				cpu.setForeground(labelCol);
 			}
-			s = MessageFormat.format("SM Packets: {0,number,#} / {1,number,#}",
-					servBean.getSMPacketsNumberPerSec(), servBean.getSMQueueSize());
+			long sm_traffic =
+					(Long) servBean.getMetricData(SM_TRAFFIC_R)
+							+ (Long) servBean.getMetricData(SM_TRAFFIC_S);
+			long sm_traffic_delta = (sm_traffic - old_sm_traffic) / getUpdaterate();
+			old_sm_traffic = sm_traffic;
+			int sm_queue = (Integer) servBean.getMetricData(SM_QUEUE_WAIT);
+			s =
+					MessageFormat.format("SM Packets: {0,number,#} / {1,number,#}",
+							sm_traffic_delta, sm_queue);
 			smPackets.setText(s);
-			if (servBean.getSMPacketsNumberPerSec() > 10000 || servBean.getSMQueueSize() > 1000) {
+			if (sm_traffic_delta > 10000 || sm_queue > 1000) {
 				smPackets.setForeground(Color.red);
 			} else {
 				smPackets.setForeground(labelCol);
 			}
-			s = MessageFormat.format("Connections: {0,number,#}",
-					servBean.getConnectionsNumber());
+			int c2s_conns = (Integer) servBean.getMetricData(C2S_CONNECTIONS);
+			s = MessageFormat.format("Connections: {0,number,#}", c2s_conns);
 			conns.setText(s);
-			if (servBean.getConnectionsNumber() > 100000) {
+			if (c2s_conns > 100000) {
 				conns.setForeground(Color.YELLOW);
 			} else {
 				conns.setForeground(labelCol);
 			}
-			s = MessageFormat.format("CL Packets: {0,number,#} / {1,number,#} / {2,number,#}",
-					servBean.getClusterPacketsPerSec(), servBean.getCLQueueSize(), servBean.getCLIOQueueSize());
+			long cl_traffic =
+					(Long) servBean.getMetricData(CL_TRAFFIC_R)
+							+ (Long) servBean.getMetricData(CL_TRAFFIC_S);
+			long cl_traffic_delta = (cl_traffic - old_cl_traffic) / getUpdaterate();
+			old_cl_traffic = cl_traffic;
+			int cl_queue = (Integer) servBean.getMetricData(CL_QUEUE_WAIT);
+			int cl_io_queue = (Integer) servBean.getMetricData(CL_IO_QUEUE_WAIT);
+			s =
+					MessageFormat.format("CL Packets: {0,number,#} / {1,number,#} / {2,number,#}",
+							cl_traffic_delta, cl_queue, cl_io_queue);
 			clPackets.setText(s);
-			if (servBean.getClusterPacketsPerSec() > 10000 || servBean.getCLQueueSize() > 1000 ||
-					servBean.getCLIOQueueSize() > 10000) {
+			if (cl_traffic_delta > 10000 || cl_queue > 1000 || cl_io_queue > 10000) {
 				clPackets.setForeground(Color.red);
 			} else {
 				clPackets.setForeground(labelCol);
 			}
-			s = MessageFormat.format("Mem: {0,number,#.#}% / {1,number,#.#}%",
-					servBean.getHeapMemUsage(), servBean.getNonHeapMemUsage());
+			float mem_usage = (Float) servBean.getMetricData(HEAP_USAGE);
+			float nh_usage = (Float) servBean.getMetricData(NONHEAP_USAGE);
+			s =
+					MessageFormat.format("Mem: {0,number,#.#}% / {1,number,#.#}%", mem_usage,
+							nh_usage);
 			mem.setText(s);
-			if (servBean.getHeapMemUsage() > 60f || servBean.getNonHeapMemUsage() > 60) {
+			if (mem_usage > 60f || nh_usage > 60) {
 				mem.setForeground(Color.red);
 			} else {
 				mem.setForeground(labelCol);
 			}
-			s = MessageFormat.format("Queues: {0,number,#}", servBean.getQueueSize());
+			int queue_wait = (Integer) servBean.getMetricData(QUEUE_WAIT);
+			s = MessageFormat.format("Queues: {0,number,#}", queue_wait);
 			queues.setText(s);
-			if (servBean.getQueueSize() > 1000) {
+			if (queue_wait > 1000) {
 				queues.setForeground(Color.red);
 			} else {
 				queues.setForeground(labelCol);
 			}
-			s = MessageFormat.format("Overflow: {0,number,#}", servBean.getQueueOverflow());
+			long queue_overflow = (Long) servBean.getMetricData(QUEUE_OVERFLOW);
+			s = MessageFormat.format("Overflow: {0,number,#}", queue_overflow);
 			overflows.setText(s);
-			if (servBean.getQueueOverflow() > 0) {
+			if (queue_overflow > 0) {
 				overflows.setForeground(Color.red);
 			} else {
 				overflows.setForeground(labelCol);
 			}
-			s = MessageFormat.format("CL Cache: {0,number,#}", servBean.getClusterCacheSize());
+			int cl_cache_size = (Integer) servBean.getMetricData(CL_CACHE_SIZE);
+			s = MessageFormat.format("CL Cache: {0,number,#}", cl_cache_size);
 			clCache.setText(s);
-			if (servBean.getClusterCacheSize() > 1000000) {
+			if (cl_cache_size > 1000000) {
 				clCache.setForeground(Color.YELLOW);
 			} else {
 				clCache.setForeground(labelCol);

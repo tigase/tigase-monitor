@@ -25,27 +25,41 @@ package tigase.monitor.panel;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.JPanel;
+
 import org.jfree.chart.JFreeChart;
-import tigase.stats.JMXProxyListener;
-import tigase.stats.StatisticsProviderMBean;
+
+import tigase.stats.JavaJMXProxyOpt;
 
 /**
  * Created: Sep 9, 2009 10:01:51 PM
- *
+ * 
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
-public abstract class TigaseMonitor implements JMXProxyListener {
+public abstract class TigaseMonitor {
 
 	private Map<String, Boolean> ids = new LinkedHashMap<String, Boolean>();
+	private DataChangeListener dataListener = null;
+	private int updaterate = 10;
+	private int serverUpdaterate = 10;
+	private String title = null;
 
-	@Override
-	public void connected(String id, StatisticsProviderMBean servBean) {
+	public TigaseMonitor(String title, int updaterate, int serverUpdaterate) {
+		this.updaterate = updaterate;
+		this.title = title;
+		this.serverUpdaterate = serverUpdaterate;
+	}
+	
+	public String getTitle() {
+		return title;
+	}
+	
+	public void connected(String id, JavaJMXProxyOpt servBean) {
 		ids.put(id, Boolean.TRUE);
 	}
 
-	@Override
 	public void disconnected(String id) {
 		ids.put(id, Boolean.FALSE);
 	}
@@ -54,10 +68,34 @@ public abstract class TigaseMonitor implements JMXProxyListener {
 		return ids.get(id) != null && ids.get(id);
 	}
 
-	public abstract void update(String id, StatisticsProviderMBean servBean);
-
 	public abstract List<JFreeChart> getCharts();
 
 	public abstract JPanel getPanel();
+	
+	public void setDataChangeListener(DataChangeListener dataListener) {
+		this.dataListener  = dataListener;
+	}
+	
+	public DataChangeListener getDataChangeListener() {
+		return dataListener;
+	}
 
+	public void setUpdate(int updaterate) {
+		this.updaterate = updaterate;
+	}
+
+	public int getUpdaterate() {
+		return updaterate;
+	}
+
+	public int getServerUpdaterate() {
+		return serverUpdaterate;
+	}
+
+	/**
+	 * @param id
+	 * @param bean
+	 */
+	public void update(String id, JavaJMXProxyOpt bean) {
+	}
 }

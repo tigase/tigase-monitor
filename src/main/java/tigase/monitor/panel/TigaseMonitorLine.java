@@ -52,24 +52,25 @@ import javax.swing.JPanel;
 
 /**
  * Created: Sep 9, 2009 11:47:00 PM
- *
+ * 
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 11 $
  */
-public abstract class TigaseMonitorLine extends TigaseMonitor {
-	private long max = 0;
+public class TigaseMonitorLine extends TigaseMonitor {
 
-	// By default max item age is 1 day
-//	private long maxItemAge = 60 * 60 * 24;
-	private long maxItemAge = 60;
-	private int max_history_size = 14400;
+	private String yTitle = null;
+	private double yAxisMax = 100;
+	private boolean countTotals = false;
+	private int timeline = 24 * 360;
+
+	private long max = 0;
 	private JPanel panel = null;
-	private int refresh_cnt = 0;
+	private Map<String, Double> lastVals = new LinkedHashMap<String, Double>();
 
 	// private XYSeriesCollection data = null;
-	private Map<String, TimeSeries> series_map = new LinkedHashMap<String, TimeSeries>(4096);
+	private Map<String, TimeSeries> series_map = new LinkedHashMap<String, TimeSeries>(10);
 	private TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
-	private Map<String, Number> last_vals = new LinkedHashMap<String, Number>(4096);
+	private Map<String, Number> last_vals = new LinkedHashMap<String, Number>(64);
 	private List<JFreeChart> charts = new LinkedList<JFreeChart>();
 	private DateAxis xAxis = null;
 	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
@@ -77,15 +78,21 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 	/**
 	 * Constructs ...
-	 *
+	 * 
 	 */
-	public TigaseMonitorLine() {
+	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
+			boolean countTotals, int timeline, int updaterate, int serverUpdaterare) {
 
-//  data = new XYSeriesCollection();
-//  XYLineAndShapeRenderer renderer = new XYSplineRenderer();
-//  renderer.setBaseShapesVisible(false);
-//  JFreeChart chart1 = createChart(renderer);
-//  charts.add(chart1);
+		super(title, updaterate, serverUpdaterare);
+		this.yTitle = yTitle;
+		this.yAxisMax = yAxisMax;
+		this.countTotals = countTotals;
+		setTimeline(timeline);
+		// data = new XYSeriesCollection();
+		// XYLineAndShapeRenderer renderer = new XYSplineRenderer();
+		// renderer.setBaseShapesVisible(false);
+		// JFreeChart chart1 = createChart(renderer);
+		// charts.add(chart1);
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 
 		renderer.setBaseShapesVisible(false);
@@ -94,75 +101,87 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 		charts.add(chart2);
 
-//  ChartPanel chartPanel1 = new ChartPanel(chart1);
+		// ChartPanel chartPanel1 = new ChartPanel(chart1);
 		ChartPanel chartPanel2 = new ChartPanel(chart2);
 
-//  JTabbedPane tabs = new JTabbedPane();
-//  tabs.add("Splines", chartPanel1);
-//  tabs.add("Lines", chartPanel2);
+		// JTabbedPane tabs = new JTabbedPane();
+		// tabs.add("Splines", chartPanel1);
+		// tabs.add("Lines", chartPanel2);
 		panel = new JPanel(new BorderLayout());
 		panel.setBackground(Color.DARK_GRAY);
 
-//  panel.add(tabs);
+		// panel.add(tabs);
 		panel.add(chartPanel2);
 	}
 
-	//~--- methods --------------------------------------------------------------
-
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
-	public abstract boolean countTotals();
-
-	//~--- get methods ----------------------------------------------------------
-
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
-	public abstract String getTitle();
-
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
-	public abstract double getYAxisMax();
-
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
-	public abstract String getYTitle();
-
-	//~--- methods --------------------------------------------------------------
-
-	/**
-	 * Method description
-	 *
-	 *
-	 * @param key
-	 */
-	public void addSeries(String key) {
-		TimeSeries series = new TimeSeries(key);
-
-		series.setMaximumItemAge(maxItemAge);
-		timeSeriesCollection.addSeries(series);
-		series_map.put(key, series);
+	public void setTimeline(int timeline) {
+		this.timeline = timeline;
+		for (TimeSeries series : series_map.values()) {
+			series.setMaximumItemCount(timeline);
+		}
 	}
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
+	 * @return
+	 */
+	public boolean countTotals() {
+		return countTotals;
+	}
+
+	/**
+	 * Method description
+	 * 
+	 * 
+	 * @return
+	 */
+	public double getYAxisMax() {
+		return yAxisMax;
+	}
+
+	/**
+	 * Method description
+	 * 
+	 * 
+	 * @return
+	 */
+	public String getYTitle() {
+		return yTitle;
+	}
+
+	/**
+	 * Method description
+	 * 
+	 * 
+	 * @param key
+	 */
+	public void addSeries(String key, Paint color) {
+		TimeSeries series = new TimeSeries(key);
+
+		series.setMaximumItemCount(timeline);
+		timeSeriesCollection.addSeries(series);
+		series_map.put(key, series);
+		setColor(key, color);
+	}
+
+	public void addSeries(String key, Paint color, int cnt) {
+		addSeries(key, color);
+		if (cnt > 1) {
+			Paint c = color;
+			for (int i = 2; i <= cnt; i++) {
+				// c = ((Color) c).darker().darker();
+				c = ((Color) c).darker();
+				addSeries(key + "-" + i, c);
+			}
+		}
+	}
+
+	/**
+	 * Method description
+	 * 
+	 * 
 	 * @param key
 	 * @param val
 	 */
@@ -170,13 +189,19 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		TimeSeries series = series_map.get(key);
 
 		if (series != null) {
-			if (++refresh_cnt >= 10 * series_map.size()) {
-				addValue(key, System.currentTimeMillis(), val, true, series);
-				refresh_cnt = 0;
-				xAxis.setLabel(dateFormat.format(new Date()));
-			} else {
-				addValue(key, System.currentTimeMillis(), val, false, series);
-			}
+			addValue(key, System.currentTimeMillis(), val, true, series);
+			xAxis.setLabel(dateFormat.format(new Date()));
+		} else {
+			System.err.println("Can't find series! " + key);
+		}
+	}
+
+	public synchronized void addValueDelta(String key, double val) {
+		TimeSeries series = series_map.get(key);
+
+		if (series != null) {
+			addValue(key, System.currentTimeMillis(), nextDelta(key, val, 1), true, series);
+			xAxis.setLabel(dateFormat.format(new Date()));
 		} else {
 			System.err.println("Can't find series! " + key);
 		}
@@ -184,8 +209,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public List<JFreeChart> getCharts() {
@@ -194,8 +219,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public JPanel getPanel() {
@@ -204,21 +229,74 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @param id
 	 * @param history
 	 */
-	public synchronized void loadHistory(String id, float[] history) {
+	public synchronized void loadHistory(String id, Float[] history) {
+		double[] vals = new double[history.length];
+		for (int i = 0; i < history.length; i++) {
+			vals[i] = history[i];
+		}
+		loadHistory(id, vals, false);
+	}
+
+	public synchronized void loadHistory(String id, Integer[] history) {
+		double[] vals = new double[history.length];
+		for (int i = 0; i < history.length; i++) {
+			vals[i] = history[i];
+		}
+		loadHistory(id, vals, false);
+	}
+
+	public synchronized void loadHistory(String id, Long[] history) {
+		double[] vals = new double[history.length];
+		for (int i = 0; i < history.length; i++) {
+			vals[i] = history[i];
+		}
+		loadHistory(id, vals, false);
+	}
+
+	/**
+	 * Method description
+	 * 
+	 * 
+	 * @param id
+	 * @param history
+	 */
+	public synchronized void loadHistory(String id, double[] history, boolean calcDelta) {
 		TimeSeries series = series_map.get(id);
 
+		int updateStep = getUpdaterate() / getServerUpdaterate();
+
 		if (series != null) {
-			int max_history = (int) Math.min(max_history_size, maxItemAge);
-			int start = ((history.length > max_history_size) ? history.length - max_history : 0);
+			int max_history = Math.min(timeline, history.length);
+			int start =
+					((history.length > max_history * updateStep) ? history.length - max_history
+							* updateStep : 0);
+
+			initDelta(id, history[start]);
+			
 			long currentTime = System.currentTimeMillis();
 
-			for (int i = start; i < history.length; i++) {
-				addValue(id, (currentTime - (history.length - i) * 1000), history[i], false, series);
+			for (int i = start; i < history.length; i += updateStep) {
+				if (i < history.length) {
+					long time =
+							(currentTime - (getServerUpdaterate() * (history.length - i)) * 1000);
+					double val = history[i];
+					if (calcDelta) {
+						val = nextDelta(id, history[i], 1);
+//						if (val > 0) {
+//							System.out.println("ID: " + id + ", updaterate: " + getUpdaterate()
+//									+ ", server updaterate: " + getServerUpdaterate() + ", updatestep: "
+//									+ updateStep + ", max_history: " + max_history + ", start: " + start
+//									+ ", history[" + i + "]: " + history[i] + ", val: " + val + ", date: "
+//									+ new Date(time));
+//						}
+					}
+					addValue(id, time, val, false, series);
+				}
 			}
 
 			series.fireSeriesChanged();
@@ -226,36 +304,28 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 			System.err.println("Can't find series! " + id);
 		}
 	}
+	
+	public void initDelta(String id, double val) {
+		lastVals.put(id, val);
+	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @param id
-	 * @param history
-	 */
-	public synchronized void loadHistory(String id, int[] history) {
-		TimeSeries series = series_map.get(id);
-
-		if (series != null) {
-			int max_history = (int) Math.min(max_history_size, maxItemAge);
-			int start = ((history.length > max_history_size) ? history.length - max_history : 0);
-			long currentTime = System.currentTimeMillis();
-
-			for (int i = start; i < history.length; i++) {
-				addValue(id, (currentTime - (history.length - i) * 1000), history[i], false, series);
-			}
-
-			series.fireSeriesChanged();
-		} else {
-			System.err.println("Can't find series! " + id);
+	public double nextDelta(String id, double val, int update) {
+		Double lastVal = lastVals.get(id);
+		if (lastVal == null) {
+			lastVal = 0d;
 		}
+		double result = (val - lastVal) / update;
+		lastVals.put(id, val);
+		// if (result > 0) {
+		// System.out.println("ID: " + id + " = " + result);
+		// }
+		return result;
 	}
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @param key
 	 * @param color
 	 */
@@ -266,7 +336,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 			int idx = timeSeriesCollection.indexOf(series);
 
 			for (JFreeChart chart : charts) {
-				XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+				XYLineAndShapeRenderer renderer =
+						(XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
 
 				renderer.setSeriesPaint(idx, color);
 			}
@@ -275,7 +346,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	private void addValue(String key, long time, double val, boolean notify, TimeSeries series) {
+	private void addValue(String key, long time, double val, boolean notify,
+			TimeSeries series) {
 		RegularTimePeriod rtp = new Second(new Date(time));
 		Number n = series.getValue(rtp);
 
@@ -306,13 +378,6 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 
 	private JFreeChart createChart(XYLineAndShapeRenderer renderer) {
 
-		// create plot...
-//  NumberAxis xAxis = new NumberAxis("Seconds");
-//  xAxis.setAutoRangeIncludesZero(false);
-//  xAxis.setRangeType(RangeType.POSITIVE);
-//  xAxis.setLowerBound(0);
-//  xAxis.setAutoRangeMinimumSize(1800);
-//  xAxis.setAutoRange(true);
 		xAxis = new DateAxis(dateFormat.format(new Date()));
 		xAxis.setAutoRange(true);
 		xAxis.setDateFormatOverride(timeFormat);
@@ -335,7 +400,8 @@ public abstract class TigaseMonitorLine extends TigaseMonitor {
 		plot.setRangeGridlinePaint(Color.white);
 		plot.setAxisOffset(new RectangleInsets(4, 4, 4, 4));
 
-		JFreeChart chart = new JFreeChart(getTitle(), JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+		JFreeChart chart =
+				new JFreeChart(getTitle(), JFreeChart.DEFAULT_TITLE_FONT, plot, false);
 
 		ChartUtilities.applyCurrentTheme(chart);
 

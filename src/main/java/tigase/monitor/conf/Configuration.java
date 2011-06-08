@@ -22,8 +22,6 @@
 
 package tigase.monitor.conf;
 
-//~--- JDK imports ------------------------------------------------------------
-
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -31,11 +29,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Created: Sep 9, 2009 6:24:08 PM
- *
+ * 
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 6 $
  */
@@ -48,51 +44,53 @@ public class Configuration {
 	private static final String JMX_USER_NAME_KEY = "jmx-user";
 	private static final String LOAD_HISTORY_DEF = "true";
 	private static final String LOAD_HISTORY_KEY = "load-history";
-	private static final String NODES_DEF =
-		"pink:pink.tigase.org,green:green.tigase.org,"
-		+ "blue:blue.tigase.org,white:black1.tigase.org,yellow:black2.tigase.org";
+	private static final String NODES_DEF = "pink:pink.tigase.org,green:green.tigase.org,"
+			+ "blue:blue.tigase.org,white:black1.tigase.org,yellow:black2.tigase.org";
 	private static final String NODES_KEY = "nodes";
-	private static final String TIMELINE_DEF = "3600";
+	private static final String TIMELINE_DEF = "8640";
 	private static final String TIMELINE_KEY = "timeline";
-	private static final String UPDATERATE_DEF = "0.5";
-	private static final String UPDATERATE_KEY = "framerate";
+	private static final String UPDATERATE_DEF = "10";
+	private static final String UPDATERATE_KEY = "updaterate";
+	private static final String SERVER_UPDATERATE_KEY = "server-updaterate";
+	private static final String SERVER_UPDATERATE_DEF = "10";
 	private static final String WIDTH_DEF = "1850";
 	private static final String WIDTH_KEY = "width";
+	private static final String WARNING_THRESHOLD_KEY = "warning-threshold";
+	private static final String WARNING_THRESHOLD_DEF = "50";
+	private static final String ERROR_THRESHOLD_KEY = "error-threshold";
+	private static final String ERROR_THRESHOLD_DEF = "80";
+	private static final String ALARM_FILE_NAME_KEY = "alarm-file";
+	private static final String ALARM_FILE_NAME_DEF = "alarm1.wav";
 
-	//~--- fields ---------------------------------------------------------------
-
-	private String config_filename = "init.properties";
 	private int height = 1100;
 	private List<NodeConfig> nodes = null;
 	private Properties props = null;
-	private int timeline = 3600;
-	private float updaterate = 0.5f;
+	private int timeline = 24 * 3600;
+	private int updaterate = 10;
+	private int server_updaterate = 10;
 	private String userName = "admin";
 	private String userPass = "admin_pass";
 	private int width = 1850;
 	private boolean loadHistory = true;
-
-	//~--- constructors ---------------------------------------------------------
+	private float warningTh = 50f;
+	private float errorTh = 80f;
+	private String alarmFileName = ALARM_FILE_NAME_DEF;
 
 	/**
 	 * Constructs ...
-	 *
-	 *
+	 * 
+	 * 
 	 * @param filename
-	 *
+	 * 
 	 * @throws IOException
 	 */
 	public Configuration(String filename) throws IOException {
-		if (filename != null) {
-			config_filename = filename;
-		}
-
 		props = new Properties();
 		props.load(new FileInputStream(filename));
 
-		String updaterate_str = props.getProperty(UPDATERATE_KEY, UPDATERATE_DEF);
-
-		updaterate = Float.parseFloat(updaterate_str);
+		updaterate = Integer.parseInt(props.getProperty(UPDATERATE_KEY, UPDATERATE_DEF));
+		server_updaterate =
+				Integer.parseInt(props.getProperty(SERVER_UPDATERATE_KEY, SERVER_UPDATERATE_DEF));
 		userName = props.getProperty(JMX_USER_NAME_KEY, JMX_USER_NAME_DEF);
 		userPass = props.getProperty(JMX_PASSWORD_KEY, JMX_PASSWORD_DEF);
 
@@ -101,20 +99,23 @@ public class Configuration {
 		nodes = new LinkedList<NodeConfig>();
 
 		for (String node : nodes_arr) {
-			String[] node_arr = node.split(":");
-			String user = userName;
+			if (!node.trim().isEmpty()) {
+				String[] node_arr = node.split(":");
+				String user = userName;
 
-			if (node_arr.length > 2) {
-				user = node_arr[2];
+				if (node_arr.length > 2) {
+					user = node_arr[2];
+				}
+
+				String pass = userPass;
+
+				if (node_arr.length > 3) {
+					pass = node_arr[3];
+				}
+
+				nodes
+						.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], 9050, user, pass));
 			}
-
-			String pass = userPass;
-
-			if (node_arr.length > 3) {
-				pass = node_arr[3];
-			}
-
-			nodes.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], 9050, user, pass));
 		}
 
 		String height_str = props.getProperty(HEIGHT_KEY, HEIGHT_DEF);
@@ -132,14 +133,26 @@ public class Configuration {
 		String loadHistoryStr = props.getProperty(LOAD_HISTORY_KEY, LOAD_HISTORY_DEF);
 
 		loadHistory = loadHistoryStr.equals("true");
+
+		warningTh =
+				Float.parseFloat(props.getProperty(WARNING_THRESHOLD_KEY, WARNING_THRESHOLD_DEF));
+		errorTh =
+				Float.parseFloat(props.getProperty(ERROR_THRESHOLD_KEY, ERROR_THRESHOLD_DEF));
+		alarmFileName = props.getProperty(ALARM_FILE_NAME_KEY, ALARM_FILE_NAME_DEF);
 	}
 
-	//~--- get methods ----------------------------------------------------------
+	public float getWarningThreshold() {
+		return warningTh;
+	}
+
+	public float getErrorThreshold() {
+		return errorTh;
+	}
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public int getHeight() {
@@ -148,8 +161,8 @@ public class Configuration {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public boolean getLoadHistory() {
@@ -158,8 +171,8 @@ public class Configuration {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public List<NodeConfig> getNodeConfigs() {
@@ -168,8 +181,8 @@ public class Configuration {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public int getTimeline() {
@@ -178,27 +191,36 @@ public class Configuration {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
-	public float getUpdaterate() {
+	public int getUpdaterate() {
 		return updaterate;
+	}
+
+	public int getServerUpdaterate() {
+		return server_updaterate;
 	}
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public int getWidth() {
 		return width;
 	}
+
+	/**
+	 * @return
+	 */
+	public String getAlarmFileName() {
+		return alarmFileName;
+	}
 }
 
+// ~ Formatted in Sun Code Convention
 
-//~ Formatted in Sun Code Convention
-
-
-//~ Formatted by Jindent --- http://www.jindent.com
+// ~ Formatted by Jindent --- http://www.jindent.com

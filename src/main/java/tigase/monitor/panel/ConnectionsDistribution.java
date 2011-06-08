@@ -38,7 +38,8 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.jfree.util.Rotation;
-import tigase.stats.StatisticsProviderMBean;
+
+import tigase.stats.JavaJMXProxyOpt;
 
 /**
  * Created: Sep 9, 2009 7:53:03 PM
@@ -53,6 +54,7 @@ public class ConnectionsDistribution extends TigaseMonitor {
 	private JPanel panel = null;
 
 	public ConnectionsDistribution() {
+		super("Distribution", 10, 10);
 		data = new DefaultPieDataset();
 //		PiePlot plot = new PiePlot3D(data);
 //		((PiePlot3D)plot).setDarkerSides(false);
@@ -122,8 +124,8 @@ public class ConnectionsDistribution extends TigaseMonitor {
 	}
 
 	@Override
-	public void update(String id, StatisticsProviderMBean servBean) {
-		setValue(id, servBean.getConnectionsNumber());
+	public void update(String id, JavaJMXProxyOpt servBean) {
+		setValue(id, (Integer)servBean.getMetricData("c2s/Open connections[I]"));
 	}
 
 	static class ChartTest extends ApplicationFrame {

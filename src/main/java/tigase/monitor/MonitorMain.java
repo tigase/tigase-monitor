@@ -46,8 +46,10 @@ import org.jfree.ui.RefineryUtilities;
  */
 public class MonitorMain extends ApplicationFrame implements ActionListener {
 
+	private static final long serialVersionUID = 1L;
+	
 	private static final String EXIT_CMD = "exit";
-	private static final String PROP_FILENAME_DEF = "init.properties";
+	private static final String PROP_FILENAME_DEF = "etc/monitor.properties";
 	private static final String PROP_FILENAME_KEY = "--init";
 
 	private ClientModuleImpl moduleImpl = null;

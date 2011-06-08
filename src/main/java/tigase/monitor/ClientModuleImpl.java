@@ -22,35 +22,23 @@
 
 package tigase.monitor;
 
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
-
-//import tigase.client.fw.BackendService;
-//import tigase.client.fw.ClientModule;
-
-import tigase.monitor.conf.Configuration;
-import tigase.monitor.conf.NodeConfig;
-import tigase.monitor.panel.CPUMonitor;
-import tigase.monitor.panel.ClusterTrafficMonitor;
-import tigase.monitor.panel.ConnectionsDistribution;
-import tigase.monitor.panel.ConnectionsMonitor;
-import tigase.monitor.panel.MemMonitor;
-import tigase.monitor.panel.SMTrafficMonitor;
-import tigase.monitor.panel.TigaseMonitor;
-import tigase.monitor.panel.TigaseTextMonitor;
-import tigase.monitor.util.MFileChooser;
-
-import tigase.stats.JavaJMXProxy;
+import static tigase.monitor.panel.DataChangeListener.BOSH_CONNECTIONS;
+import static tigase.monitor.panel.DataChangeListener.C2S_CONNECTIONS;
+import static tigase.monitor.panel.DataChangeListener.CL_TRAFFIC_R;
+import static tigase.monitor.panel.DataChangeListener.CL_TRAFFIC_S;
+import static tigase.monitor.panel.DataChangeListener.CPU_USAGE;
+import static tigase.monitor.panel.DataChangeListener.HEAP_USAGE;
+import static tigase.monitor.panel.DataChangeListener.NONHEAP_USAGE;
+import static tigase.monitor.panel.DataChangeListener.S2S_CONNECTIONS;
+import static tigase.monitor.panel.DataChangeListener.SM_TRAFFIC_R;
+import static tigase.monitor.panel.DataChangeListener.SM_TRAFFIC_S;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.io.File;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -59,6 +47,12 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.Line;
+import javax.sound.sampled.LineEvent;
+import javax.sound.sampled.LineListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -74,11 +68,24 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+
+import tigase.monitor.conf.Configuration;
+import tigase.monitor.conf.NodeConfig;
+import tigase.monitor.panel.ConnectionsDistribution;
+import tigase.monitor.panel.DataChange;
+import tigase.monitor.panel.TigaseMonitor;
+import tigase.monitor.panel.TigaseMonitorLine;
+import tigase.monitor.panel.TigaseTextMonitor;
+import tigase.monitor.util.MFileChooser;
+import tigase.stats.JavaJMXProxyOpt;
+
 //~--- classes ----------------------------------------------------------------
 
 /**
  * Created: Sep 23, 2009 2:24:40 PM
- *
+ * 
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
@@ -88,13 +95,13 @@ public class ClientModuleImpl implements ActionListener {
 	private static final String AUTO_EXPORT_TIMER_CMD = "auto-export-timer";
 	private static Timer timer = new Timer("Statistics updater", true);
 
-	//~--- fields ---------------------------------------------------------------
+	// ~--- fields ---------------------------------------------------------------
 
 	private Configuration config = null;
 	private JTextField dir = null;
 	private JFrame mainFrame = null;
 	private JMenu menu = null;
-	private List<JavaJMXProxy> proxies = new LinkedList<JavaJMXProxy>();
+	private List<JavaJMXProxyOpt> proxies = new LinkedList<JavaJMXProxyOpt>();
 	private Map<String, JPanel> panels = new LinkedHashMap<String, JPanel>();
 	private List<TigaseMonitor> monitors = new LinkedList<TigaseMonitor>();
 	private float row1_height_factor = 0.30f;
@@ -103,21 +110,24 @@ public class ClientModuleImpl implements ActionListener {
 	private float row2_width_factor = 0.33f;
 	private float row3_height_factor = 0.40f;
 	private float row3_width_factor = 0.2f;
+	private DataChange notifier = null;
+	private DialogDisplay dialogDisplay = null;
 
-	//~--- constructors ---------------------------------------------------------
+	// ~--- constructors ---------------------------------------------------------
 
 	/**
 	 * Constructs ...
-	 *
+	 * 
 	 */
-	public ClientModuleImpl() {}
+	public ClientModuleImpl() {
+	}
 
-	//~--- methods --------------------------------------------------------------
+	// ~--- methods --------------------------------------------------------------
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @param e
 	 */
 	public void actionPerformed(ActionEvent e) {
@@ -150,24 +160,22 @@ public class ClientModuleImpl implements ActionListener {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------------
-
-//	/**
-//	 * Method description
-//	 *
-//	 *
-//	 * @return
-//	 */
-//	public Map<String, BackendService> getBackendServices() {
-//		return null;
-//	}
+	// /**
+	// * Method description
+	// *
+	// *
+	// * @return
+	// */
+	// public Map<String, BackendService> getBackendServices() {
+	// return null;
+	// }
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @param menuBar
-	 *
+	 * 
 	 * @return
 	 */
 	public JMenu getJMenu(JMenuBar menuBar) {
@@ -176,8 +184,8 @@ public class ClientModuleImpl implements ActionListener {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public Map<String, JPanel> getJPanels() {
@@ -186,20 +194,18 @@ public class ClientModuleImpl implements ActionListener {
 
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @return
 	 */
 	public Dimension getPreferredSize() {
 		return new Dimension(config.getWidth(), config.getHeight());
 	}
 
-	//~--- methods --------------------------------------------------------------
-
 	/**
 	 * Method description
-	 *
-	 *
+	 * 
+	 * 
 	 * @param configFile
 	 * @param mainFrame
 	 */
@@ -210,9 +216,39 @@ public class ClientModuleImpl implements ActionListener {
 			config = new Configuration(configFile);
 		} catch (Exception e) {
 			System.out.println("init.properties file missing, using defaults.");
+			e.printStackTrace();
 		}
 
+		dialogDisplay = new DialogDisplay(config.getAlarmFileName());
+		dialogDisplay.setDaemon(true);
+		dialogDisplay.start();
+
 		JPanel panel = createPanel(config);
+		notifier = new DataChange(null, CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE) {
+
+			private float warningThreshold = config.getWarningThreshold();
+			private float errorThreshold = config.getErrorThreshold();
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				for (String dataId : getDataIds()) {
+					float val = (Float) bean.getMetricData(dataId);
+					if (val > errorThreshold) {
+						dialogDisplay.wakeup(JOptionPane.ERROR_MESSAGE, "Resource near limit!",
+								"Critical " + msgMapping.get(dataId) + " usage on " + id + " machine: "
+										+ bean.getHostname());
+					}
+				}
+				for (String dataId : getDataIds()) {
+					float val = (Float) bean.getMetricData(dataId);
+					if (val > warningThreshold) {
+						dialogDisplay.wakeup(JOptionPane.WARNING_MESSAGE, "High resource usage!",
+								"High " + msgMapping.get(dataId) + " usage on " + id + " machine: "
+										+ bean.getHostname());
+					}
+				}
+			}
+
+		};
 
 		panels.put("Live View", panel);
 		menu = createMenu();
@@ -220,19 +256,17 @@ public class ClientModuleImpl implements ActionListener {
 		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
 		for (NodeConfig nodeConfig : nodeConfigs) {
-			JavaJMXProxy proxy = new JavaJMXProxy(nodeConfig.getDescription(),
-							nodeConfig.getHostname(),
-							nodeConfig.getPort(),
-							nodeConfig.getUserName(),
-							nodeConfig.getPassword(),
-							1000,
-							1000,
-							config.getLoadHistory());
+			JavaJMXProxyOpt proxy =
+					new JavaJMXProxyOpt(nodeConfig.getDescription(), nodeConfig.getHostname(),
+							nodeConfig.getPort(), nodeConfig.getUserName(), nodeConfig.getPassword(),
+							1000, 1000, config.getLoadHistory());
 
 			proxies.add(proxy);
 
+			proxy.addJMXProxyListener(notifier);
+
 			for (TigaseMonitor monitor : monitors) {
-				proxy.addJMXProxyListener(monitor);
+				proxy.addJMXProxyListener(monitor.getDataChangeListener());
 			}
 
 			proxy.start();
@@ -241,17 +275,25 @@ public class ClientModuleImpl implements ActionListener {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				for (JavaJMXProxy javaJMXProxy : proxies) {
+				// System.out.println("Update... " + new Date());
+				for (JavaJMXProxyOpt javaJMXProxy : proxies) {
 					if (javaJMXProxy.isInitialized()) {
+						notifier.update(javaJMXProxy.getId(), javaJMXProxy);
+						// System.out.println("Update proxy: " + javaJMXProxy.getId());
 						for (TigaseMonitor monitor : monitors) {
 							if (monitor.isReady(javaJMXProxy.getId())) {
-								monitor.update(javaJMXProxy.getId(), javaJMXProxy);
+								// System.out.println("Update monitor: " + monitor.getTitle());
+								monitor.getDataChangeListener()
+										.update(javaJMXProxy.getId(), javaJMXProxy);
+							} else {
+								System.out.println("Update monitor - monitor not ready: "
+										+ monitor.getTitle());
 							}
 						}
 					}
 				}
 			}
-		}, 1000, 1000);
+		}, 1000, config.getUpdaterate() * 1000l);
 	}
 
 	private void autoExportTimer() {
@@ -287,17 +329,11 @@ public class ClientModuleImpl implements ActionListener {
 		dirButton.addActionListener(this);
 		dirPanel.add(dirButton);
 
-		int result = JOptionPane.showOptionDialog(mainFrame,
-						new Object[] {
-			message, label, delay, repeat_lab, repeat, interval_lab, interval, pngExport,
-			jpgExport, exitOnComplete, labelDir, dirPanel
-		},
-						"Login",
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.QUESTION_MESSAGE,
-						null,
-						null,
-						null);
+		int result =
+				JOptionPane.showOptionDialog(mainFrame, new Object[] { message, label, delay,
+						repeat_lab, repeat, interval_lab, interval, pngExport, jpgExport,
+						exitOnComplete, labelDir, dirPanel }, "Login", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.QUESTION_MESSAGE, null, null, null);
 
 		if (result == JOptionPane.OK_OPTION) {
 			long delayLong = -1;
@@ -308,21 +344,19 @@ public class ClientModuleImpl implements ActionListener {
 				delayLong = Long.parseLong(delay.getText()) * 1000;
 			} catch (Exception e) {
 				JOptionPane.showMessageDialog(mainFrame,
-																			"Incorrect delay value: " + delay.getText(),
-																			"Error",
-																			JOptionPane.ERROR_MESSAGE);
+						"Incorrect delay value: " + delay.getText(), "Error",
+						JOptionPane.ERROR_MESSAGE);
 
 				return;
 			}
 
-			if ((repeat.getText() != null) &&!repeat.getText().isEmpty()) {
+			if ((repeat.getText() != null) && !repeat.getText().isEmpty()) {
 				try {
 					repeatInt = Integer.parseInt(repeat.getText());
 				} catch (Exception e) {
 					JOptionPane.showMessageDialog(mainFrame,
-																				"Incorrect repeat value: " + repeat.getText(),
-																				"Error",
-																				JOptionPane.ERROR_MESSAGE);
+							"Incorrect repeat value: " + repeat.getText(), "Error",
+							JOptionPane.ERROR_MESSAGE);
 
 					return;
 				}
@@ -332,20 +366,16 @@ public class ClientModuleImpl implements ActionListener {
 				try {
 					intervalLong = Long.parseLong(interval.getText()) * 1000;
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(mainFrame,
-																				"Incorrect interval value: " + interval.getText(),
-																				"Error",
-																				JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(mainFrame, "Incorrect interval value: "
+							+ interval.getText(), "Error", JOptionPane.ERROR_MESSAGE);
 
 					return;
 				}
 			}
 
 			if ((dir.getText() == null) || dir.getText().isEmpty()) {
-				JOptionPane.showMessageDialog(mainFrame,
-																			"Please enter valid directory name.",
-																			"Error",
-																			JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(mainFrame, "Please enter valid directory name.",
+						"Error", JOptionPane.ERROR_MESSAGE);
 
 				return;
 			}
@@ -353,21 +383,13 @@ public class ClientModuleImpl implements ActionListener {
 			boolean exit = exitOnComplete.isSelected();
 
 			if (pngExport.isSelected()) {
-				saveAllTo(new File(dir.getText()),
-									".png",
-									exit &&!jpgExport.isSelected(),
-									delayLong,
-									repeatInt,
-									intervalLong);
+				saveAllTo(new File(dir.getText()), ".png", exit && !jpgExport.isSelected(),
+						delayLong, repeatInt, intervalLong);
 			}
 
 			if (jpgExport.isSelected()) {
-				saveAllTo(new File(dir.getText()),
-									".jpg",
-									exit,
-									delayLong + 1000,
-									repeatInt,
-									intervalLong);
+				saveAllTo(new File(dir.getText()), ".jpg", exit, delayLong + 1000, repeatInt,
+						intervalLong);
 			}
 		}
 	}
@@ -410,6 +432,13 @@ public class ClientModuleImpl implements ActionListener {
 		liveView.add(row1);
 
 		ConnectionsDistribution distr = new ConnectionsDistribution();
+		new DataChange(distr, C2S_CONNECTIONS) {
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				monitor.update(id, bean);
+			}
+
+		};
 
 		monitors.add(distr);
 
@@ -420,7 +449,25 @@ public class ClientModuleImpl implements ActionListener {
 		distr.getPanel().setPreferredSize(dim);
 		row1.add(distr.getPanel());
 
-		CPUMonitor cpu = new CPUMonitor();
+		TigaseMonitorLine cpu =
+				new TigaseMonitorLine("CPU Load", "CPU %", 100, false, config.getTimeline(),
+						config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(cpu, CPU_USAGE) {
+
+			public void connected(String id, JavaJMXProxyOpt bean) {
+				Float[] history = (Float[]) bean.getMetricHistory(getDataIds()[0]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id, history);
+				}
+				super.connected(id, bean);
+			}
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				((TigaseMonitorLine) monitor).addValue(id,
+						(Float) bean.getMetricData(getDataIds()[0]));
+			}
+
+		};
 
 		monitors.add(cpu);
 
@@ -431,7 +478,31 @@ public class ClientModuleImpl implements ActionListener {
 		cpu.getPanel().setPreferredSize(dim);
 		row1.add(cpu.getPanel());
 
-		MemMonitor mem = new MemMonitor();
+		TigaseMonitorLine mem =
+				new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, config.getTimeline(),
+						config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(mem, HEAP_USAGE, NONHEAP_USAGE) {
+
+			public void connected(String id, JavaJMXProxyOpt bean) {
+				Float[] history = (Float[]) bean.getMetricHistory(getDataIds()[0]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id, history);
+				}
+				history = (Float[]) bean.getMetricHistory(getDataIds()[1]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id + "-2", history);
+				}
+				super.connected(id, bean);
+			}
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				((TigaseMonitorLine) monitor).addValue(id,
+						(Float) bean.getMetricData(getDataIds()[0]));
+				((TigaseMonitorLine) monitor).addValue(id + "-2",
+						(Float) bean.getMetricData(getDataIds()[1]));
+			}
+
+		};
 
 		monitors.add(mem);
 		dim = new Dimension(width, height);
@@ -446,21 +517,85 @@ public class ClientModuleImpl implements ActionListener {
 		row2.setBackground(Color.DARK_GRAY);
 		liveView.add(row2);
 
-		ConnectionsMonitor conns = new ConnectionsMonitor();
+		TigaseMonitorLine conns =
+				new TigaseMonitorLine("Connections", "Connections per node", 10, true,
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(conns, C2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS) {
+
+			public void connected(String id, JavaJMXProxyOpt bean) {
+				Integer[] history = (Integer[]) bean.getMetricHistory(getDataIds()[0]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id, history);
+				}
+				history = (Integer[]) bean.getMetricHistory(getDataIds()[1]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id + "-2", history);
+				}
+				history = (Integer[]) bean.getMetricHistory(getDataIds()[2]);
+				if (history != null && history.length > 0) {
+					((TigaseMonitorLine) monitor).loadHistory(id + "-3", history);
+				}
+				super.connected(id, bean);
+			}
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				Integer val = (Integer) bean.getMetricData(getDataIds()[0]);
+				((TigaseMonitorLine) monitor).addValue(id, val);
+				((TigaseMonitorLine) monitor).addValue(id + "-2",
+						(Integer) bean.getMetricData(getDataIds()[1]));
+				((TigaseMonitorLine) monitor).addValue(id + "-3",
+						(Integer) bean.getMetricData(getDataIds()[2]));
+			}
+
+		};
 
 		monitors.add(conns);
 		dim = new Dimension(width, height);
 		conns.getPanel().setPreferredSize(dim);
 		row2.add(conns.getPanel());
 
-		SMTrafficMonitor sm = new SMTrafficMonitor();
+		TigaseMonitorLine sm =
+				new TigaseMonitorLine("SM Traffic", "Packets/sec", 50, true,
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(sm, SM_TRAFFIC_R, SM_TRAFFIC_S) {
+
+			public void connected(String id, JavaJMXProxyOpt bean) {
+				Long[] history = (Long[]) bean.getMetricHistory(getDataIds()[0]);
+				connectedDelta(id, bean, history);
+				history = (Long[]) bean.getMetricHistory(getDataIds()[1]);
+				connectedDelta(id + "-2", bean, history);
+			}
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				updateDelta(id, (Long) bean.getMetricData(getDataIds()[0]));
+				updateDelta(id + "-2", (Long) bean.getMetricData(getDataIds()[1]));
+			}
+
+		};
 
 		monitors.add(sm);
 		dim = new Dimension(width, height);
 		sm.getPanel().setPreferredSize(dim);
 		row2.add(sm.getPanel());
 
-		ClusterTrafficMonitor cl = new ClusterTrafficMonitor();
+		TigaseMonitorLine cl =
+				new TigaseMonitorLine("Cluster Traffic", "Packets/sec", 50, true,
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(cl, CL_TRAFFIC_R, CL_TRAFFIC_S) {
+
+			public void connected(String id, JavaJMXProxyOpt bean) {
+				Long[] history = (Long[]) bean.getMetricHistory(getDataIds()[0]);
+				connectedDelta(id, bean, history);
+				history = (Long[]) bean.getMetricHistory(getDataIds()[1]);
+				connectedDelta(id + "-2", bean, history);
+			}
+
+			public void update(String id, JavaJMXProxyOpt bean) {
+				updateDelta(id, (Long) bean.getMetricData(getDataIds()[0]));
+				updateDelta(id + "-2", (Long) bean.getMetricData(getDataIds()[1]));
+			}
+
+		};
 
 		monitors.add(cl);
 		dim = new Dimension(width, height);
@@ -481,20 +616,23 @@ public class ClientModuleImpl implements ActionListener {
 		for (NodeConfig nodeConfig : nodeConfigs) {
 			distr.setValue(nodeConfig.getDescription(), 0);
 			distr.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			cpu.addSeries(nodeConfig.getDescription());
-			cpu.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			mem.addSeries(nodeConfig.getDescription());
-			mem.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			sm.addSeries(nodeConfig.getDescription());
-			sm.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			cl.addSeries(nodeConfig.getDescription());
-			cl.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			conns.addSeries(nodeConfig.getDescription());
-			conns.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
+			cpu.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			mem.addSeries(nodeConfig.getDescription(), nodeConfig.getColor(), 2);
+			sm.addSeries(nodeConfig.getDescription(), nodeConfig.getColor(), 2);
+			cl.addSeries(nodeConfig.getDescription(), nodeConfig.getColor(), 2);
+			conns.addSeries(nodeConfig.getDescription(), nodeConfig.getColor(), 3);
 
 			if (cnt < 5) {
-				TigaseTextMonitor textMonitor = new TigaseTextMonitor(nodeConfig.getDescription(),
-								nodeConfigs);
+				TigaseTextMonitor textMonitor =
+						new TigaseTextMonitor(nodeConfig.getDescription(), nodeConfigs,
+								config.getUpdaterate(), config.getServerUpdaterate());
+				new DataChange(textMonitor, textMonitor.getMetricsKeys()) {
+
+					public void update(String id, JavaJMXProxyOpt bean) {
+						monitor.update(id, bean);
+					}
+
+				};
 
 				monitors.add(textMonitor);
 				dim = new Dimension(width, height);
@@ -513,8 +651,8 @@ public class ClientModuleImpl implements ActionListener {
 	}
 
 	private void exportTo(String ext) {
-		MFileChooser fc = new MFileChooser("Directory to store all charts as " + ext
-																			 + " files");
+		MFileChooser fc =
+				new MFileChooser("Directory to store all charts as " + ext + " files");
 
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
@@ -528,18 +666,14 @@ public class ClientModuleImpl implements ActionListener {
 	}
 
 	private void saveAllTo(File dir, String ext, boolean exitOnComplete, long delay,
-												 int repeat, long interval) {
-		Thread thread = new BackgroundSaver(dir,
-						ext,
-						exitOnComplete,
-						delay,
-						repeat,
-						interval);
+			int repeat, long interval) {
+		Thread thread =
+				new BackgroundSaver(dir, ext, exitOnComplete, delay, repeat, interval);
 
 		thread.start();
 	}
 
-	//~--- inner classes --------------------------------------------------------
+	// ~--- inner classes --------------------------------------------------------
 
 	class BackgroundSaver extends Thread {
 		private long delay = 0;
@@ -549,10 +683,10 @@ public class ClientModuleImpl implements ActionListener {
 		private long interval = 0;
 		private int repeat = 1;
 
-		//~--- constructors -------------------------------------------------------
+		// ~--- constructors -------------------------------------------------------
 
 		private BackgroundSaver(File dir, String ext, boolean exitOnComplete, long delay,
-														int repeat, long interval) {
+				int repeat, long interval) {
 			this.dir = dir;
 			this.ext = ext;
 			this.exitOnComplete = exitOnComplete;
@@ -561,21 +695,22 @@ public class ClientModuleImpl implements ActionListener {
 			this.interval = interval;
 		}
 
-		//~--- methods ------------------------------------------------------------
+		// ~--- methods ------------------------------------------------------------
 
 		/**
 		 * Method description
-		 *
+		 * 
 		 */
 		@Override
 		public void run() {
 			if (delay > 0) {
 				try {
 					sleep(delay);
-				} catch (Exception e) {}
+				} catch (Exception e) {
+				}
 			}
 
-			if ( !dir.exists()) {
+			if (!dir.exists()) {
 				dir.mkdirs();
 			}
 
@@ -592,9 +727,8 @@ public class ClientModuleImpl implements ActionListener {
 
 					if (charts != null) {
 						for (JFreeChart chart : charts) {
-							File file = new File(dir,
-																	 datetime + (++i) + "_" + chart.getTitle().getText()
-																	 + ext);
+							File file =
+									new File(dir, datetime + (++i) + "_" + chart.getTitle().getText() + ext);
 
 							try {
 								JFreeChart ch = (JFreeChart) chart.clone();
@@ -616,7 +750,8 @@ public class ClientModuleImpl implements ActionListener {
 				if ((interval > 0) && (j + 1 < repeat)) {
 					try {
 						sleep(interval);
-					} catch (Exception e) {}
+					} catch (Exception e) {
+					}
 				}
 			}
 
@@ -626,10 +761,93 @@ public class ClientModuleImpl implements ActionListener {
 			}
 		}
 	}
+
+	class DialogDisplay extends Thread implements LineListener {
+
+		private int type = Integer.MIN_VALUE;
+		private String title = null;
+		private String message = null;
+		private Clip clip = null;
+		private File soundFile = new File("alarm1.wav");
+
+		public DialogDisplay(String alarmFile) {
+			super();
+			soundFile = new File(alarmFile);
+			try {
+				// get and play sound
+				Line.Info linfo = new Line.Info(Clip.class);
+				Line line = AudioSystem.getLine(linfo);
+				clip = (Clip) line;
+				clip.addLineListener(this);
+				// clip.start();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		public void wakeup(int type, String title, String message) {
+			this.type = type;
+			this.title = title;
+			this.message = message;
+			synchronized (this) {
+				this.notifyAll();
+			}
+		}
+
+		public void run() {
+			while (true) {
+				try {
+					synchronized (this) {
+						this.wait();
+					}
+					// Guard from spontaneous awaking from wait.
+					if (title != null) {
+						if (type == JOptionPane.ERROR_MESSAGE) {
+							try {
+								AudioInputStream ais = AudioSystem.getAudioInputStream(soundFile);
+								clip.open(ais);
+								clip.loop(Clip.LOOP_CONTINUOUSLY);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+						JOptionPane.showMessageDialog(ClientModuleImpl.this.mainFrame, message,
+								title, type);
+						title = null;
+						if (type == JOptionPane.ERROR_MESSAGE) {
+							try {
+								clip.stop();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+						}
+					}
+				} catch (InterruptedException ex) {
+				}
+			}
+		}
+
+		public void update(LineEvent le) {
+			LineEvent.Type type = le.getType();
+			if (type == LineEvent.Type.OPEN) {
+				// System.out.println("OPEN");
+			} else if (type == LineEvent.Type.CLOSE) {
+				// System.out.println("CLOSE");
+				// System.exit(0);
+			} else if (type == LineEvent.Type.START) {
+				// System.out.println("START");
+				// playingDialog.setVisible(true);
+			} else if (type == LineEvent.Type.STOP) {
+				// System.out.println("STOP");
+				// playingDialog.setVisible(false);
+				clip.close();
+			}
+
+		}
+
+	}
 }
 
+// ~ Formatted in Sun Code Convention
 
-//~ Formatted in Sun Code Convention
-
-
-//~ Formatted by Jindent --- http://www.jindent.com
+// ~ Formatted by Jindent --- http://www.jindent.com
