@@ -159,8 +159,8 @@ public class Configuration {
 				String prop_full_key = key.substring(CUSTOM_CHART_KEY.length());
 				int idx = prop_full_key.indexOf('.');
 				String prop_idx_str = prop_full_key.substring(0, idx);
-				System.out.println("prop_full_key: " + prop_full_key + ", prop_idx_str: "
-						+ prop_idx_str);
+//				System.out.println("prop_full_key: " + prop_full_key + ", prop_idx_str: "
+//						+ prop_idx_str);
 				Integer prop_idx = Integer.decode(prop_idx_str);
 				String prop_key = prop_full_key.substring(idx + 1);
 				ChartConfig chartConfig = customCharts.get(prop_idx);
@@ -169,8 +169,8 @@ public class Configuration {
 					customCharts.put(prop_idx, chartConfig);
 				}
 				chartConfig.addProperty(prop_key, props.getProperty(key));
-				System.out.println("IDX: " + prop_idx + ", prop_key: " + prop_key + ", val: "
-						+ props.getProperty(key));
+//				System.out.println("IDX: " + prop_idx + ", prop_key: " + prop_key + ", val: "
+//						+ props.getProperty(key));
 			}
 		}
 	}
