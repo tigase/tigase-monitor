@@ -26,11 +26,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import tigase.stats.JavaJMXProxyOpt;
+import tigase.util.DataTypes;
 
 /**
  * @author Artur Hefczyc Created May 28, 2011
  */
-public abstract class DataChange implements DataChangeListener {
+public class DataChange implements DataChangeListener {
 	public static final Map<String, String> msgMapping =
 			new LinkedHashMap<String, String>();
 
@@ -42,9 +43,14 @@ public abstract class DataChange implements DataChangeListener {
 
 	protected TigaseMonitor monitor = null;
 	private String[] dataIds = null;
+	private boolean countDelta = false;
+	private boolean loadHistory = true;
 
-	public DataChange(TigaseMonitor monitor, String... dataIds) {
+	public DataChange(TigaseMonitor monitor, boolean countDelta, boolean loadHistory,
+			String... dataIds) {
 		this.monitor = monitor;
+		this.countDelta = countDelta;
+		this.loadHistory = loadHistory;
 		if (this.monitor != null) {
 			this.monitor.setDataChangeListener(this);
 		}
@@ -57,7 +63,91 @@ public abstract class DataChange implements DataChangeListener {
 
 	public void connected(String id, JavaJMXProxyOpt bean) {
 		if (monitor != null) {
+			if (loadHistory) {
+				int idx = 1;
+				int delta = (countDelta ? monitor.getServerUpdaterate() : 1);
+				for (String dataId : dataIds) {
+					double[] history = null;
+					switch (DataTypes.decodeTypeIdFromName(dataId)) {
+						case 'L': {
+							Long[] h = (Long[]) bean.getMetricHistory(dataId);
+							if (h != null && h.length > 0) {
+								history = new double[h.length];
+								for (int i = 0; i < h.length; i++) {
+									history[i] = h[i] / delta;
+								}
+							}
+							break;
+						}
+						case 'F': {
+							Float[] h = (Float[]) bean.getMetricHistory(dataId);
+							if (h != null && h.length > 0) {
+								history = new double[h.length];
+								for (int i = 0; i < h.length; i++) {
+									history[i] = h[i] / delta;
+								}
+							}
+							break;
+						}
+						case 'I': {
+							Integer[] h = (Integer[]) bean.getMetricHistory(dataId);
+							if (h != null && h.length > 0) {
+								history = new double[h.length];
+								for (int i = 0; i < h.length; i++) {
+									history[i] = h[i] / delta;
+								}
+							}
+							break;
+						}
+						case 'D': {
+							Double[] h = (Double[]) bean.getMetricHistory(dataId);
+							if (h != null && h.length > 0) {
+								history = new double[h.length];
+								for (int i = 0; i < h.length; i++) {
+									history[i] = h[i] / delta;
+								}
+							}
+							break;
+						}
+					}
+					if (history != null) {
+						((TigaseMonitorLine) monitor).loadHistory(id + "-" + (idx++), history,
+								countDelta);
+					}
+				}
+			}
 			monitor.connected(id, bean);
+		}
+	}
+
+	public void update(String id, JavaJMXProxyOpt bean) {
+		if (monitor != null) {
+			int idx = 1;
+			for (String dataId : dataIds) {
+				Double value = null;
+				switch (DataTypes.decodeTypeIdFromName(dataId)) {
+					case 'L':
+						value = ((Long) bean.getMetricData(dataId)).doubleValue();
+						break;
+					case 'F':
+						value = ((Float) bean.getMetricData(dataId)).doubleValue();
+						break;
+					case 'I':
+						value = ((Integer) bean.getMetricData(dataId)).doubleValue();
+						break;
+					case 'D':
+						value = (Double) bean.getMetricData(dataId);
+						break;
+				}
+				if (value != null) {
+					if (countDelta) {
+						((TigaseMonitorLine) monitor).addValueDelta(id + "-" + (idx++), value
+								/ monitor.getUpdaterate());
+					} else {
+						((TigaseMonitorLine) monitor).addValue(id + "-" + (idx++), value);
+					}
+				}
+			}
 		}
 	}
 
@@ -71,7 +161,7 @@ public abstract class DataChange implements DataChangeListener {
 		if (history != null && history.length > 0) {
 			double[] long_hist = new double[history.length];
 			for (int i = 0; i < history.length; i++) {
-				long_hist[i] = history[i]/monitor.getServerUpdaterate();
+				long_hist[i] = history[i] / monitor.getServerUpdaterate();
 			}
 			((TigaseMonitorLine) monitor).loadHistory(id, long_hist, true);
 		}
@@ -79,7 +169,7 @@ public abstract class DataChange implements DataChangeListener {
 	}
 
 	public void updateDelta(String id, long val) {
-		double value = val/monitor.getUpdaterate();
+		double value = val / monitor.getUpdaterate();
 		((TigaseMonitorLine) monitor).addValueDelta(id, value);
 	}
 

@@ -25,8 +25,10 @@ package tigase.monitor.conf;
 import java.io.FileInputStream;
 import java.io.IOException;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -61,9 +63,16 @@ public class Configuration {
 	private static final String ERROR_THRESHOLD_DEF = "80";
 	private static final String ALARM_FILE_NAME_KEY = "alarm-file";
 	private static final String ALARM_FILE_NAME_DEF = "alarm1.wav";
+	private static final String CUSTOM_WINDOW_KEY = "custom-window";
+	private static final String CUSTOM_WINDOW_DEF = "false";
+	private static final String CUSTOM_WINDOW_TIT_KEY = "custom-window.title";
+	private static final String CUSTOM_WINDOW_TIT_DEF = "Custom data charts";
+	private static final String CUSTOM_CHART_KEY = "custom-window.chart.";
 
 	private int height = 1100;
 	private List<NodeConfig> nodes = null;
+	private Map<Integer, ChartConfig> customCharts =
+			new LinkedHashMap<Integer, ChartConfig>();
 	private Properties props = null;
 	private int timeline = 24 * 3600;
 	private int updaterate = 10;
@@ -75,6 +84,8 @@ public class Configuration {
 	private float warningTh = 50f;
 	private float errorTh = 80f;
 	private String alarmFileName = ALARM_FILE_NAME_DEF;
+	private boolean customWindow = false;
+	private String customWindowTitle = CUSTOM_WINDOW_TIT_DEF;
 
 	/**
 	 * Constructs ...
@@ -139,6 +150,29 @@ public class Configuration {
 		errorTh =
 				Float.parseFloat(props.getProperty(ERROR_THRESHOLD_KEY, ERROR_THRESHOLD_DEF));
 		alarmFileName = props.getProperty(ALARM_FILE_NAME_KEY, ALARM_FILE_NAME_DEF);
+		customWindow =
+				Boolean.parseBoolean(props.getProperty(CUSTOM_WINDOW_KEY, CUSTOM_WINDOW_DEF));
+		customWindowTitle = props.getProperty(CUSTOM_WINDOW_TIT_KEY, CUSTOM_WINDOW_TIT_DEF);
+
+		for (String key : props.stringPropertyNames()) {
+			if (key.startsWith(CUSTOM_CHART_KEY)) {
+				String prop_full_key = key.substring(CUSTOM_CHART_KEY.length());
+				int idx = prop_full_key.indexOf('.');
+				String prop_idx_str = prop_full_key.substring(0, idx);
+				System.out.println("prop_full_key: " + prop_full_key + ", prop_idx_str: "
+						+ prop_idx_str);
+				Integer prop_idx = Integer.decode(prop_idx_str);
+				String prop_key = prop_full_key.substring(idx + 1);
+				ChartConfig chartConfig = customCharts.get(prop_idx);
+				if (chartConfig == null) {
+					chartConfig = new ChartConfig();
+					customCharts.put(prop_idx, chartConfig);
+				}
+				chartConfig.addProperty(prop_key, props.getProperty(key));
+				System.out.println("IDX: " + prop_idx + ", prop_key: " + prop_key + ", val: "
+						+ props.getProperty(key));
+			}
+		}
 	}
 
 	public float getWarningThreshold() {
@@ -218,6 +252,32 @@ public class Configuration {
 	 */
 	public String getAlarmFileName() {
 		return alarmFileName;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean customWindow() {
+		return customWindow;
+	}
+
+	/**
+	 * @return
+	 */
+	public String getCustomTitle() {
+		return customWindowTitle;
+	}
+
+	/**
+	 * @param i
+	 * @return
+	 */
+	public ChartConfig getChartConfig(int i) {
+		ChartConfig conf = customCharts.get(i);
+		if (conf == null) {
+			conf = new ChartConfig();
+		}
+		return conf;
 	}
 }
 

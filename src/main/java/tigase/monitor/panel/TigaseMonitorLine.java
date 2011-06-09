@@ -158,23 +158,17 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * @param key
 	 */
 	public void addSeries(String key, Paint color) {
-		TimeSeries series = new TimeSeries(key);
+		DataChange dc = (DataChange) getDataChangeListener();
+		Paint c = color;
+		for (int i = 1; i <= dc.getDataIds().length; i++) {
+			String sKey = key + "-" + i;
+			TimeSeries series = new TimeSeries(sKey);
 
-		series.setMaximumItemCount(timeline);
-		timeSeriesCollection.addSeries(series);
-		series_map.put(key, series);
-		setColor(key, color);
-	}
-
-	public void addSeries(String key, Paint color, int cnt) {
-		addSeries(key, color);
-		if (cnt > 1) {
-			Paint c = color;
-			for (int i = 2; i <= cnt; i++) {
-				// c = ((Color) c).darker().darker();
-				c = ((Color) c).darker();
-				addSeries(key + "-" + i, c);
-			}
+			series.setMaximumItemCount(timeline);
+			timeSeriesCollection.addSeries(series);
+			series_map.put(sKey, series);
+			setColor(sKey, c);
+			c = ((Color) c).darker();
 		}
 	}
 
@@ -277,7 +271,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 							* updateStep : 0);
 
 			initDelta(id, history[start]);
-			
+
 			long currentTime = System.currentTimeMillis();
 
 			for (int i = start; i < history.length; i += updateStep) {
@@ -287,13 +281,17 @@ public class TigaseMonitorLine extends TigaseMonitor {
 					double val = history[i];
 					if (calcDelta) {
 						val = nextDelta(id, history[i], 1);
-//						if (val > 0) {
-//							System.out.println("ID: " + id + ", updaterate: " + getUpdaterate()
-//									+ ", server updaterate: " + getServerUpdaterate() + ", updatestep: "
-//									+ updateStep + ", max_history: " + max_history + ", start: " + start
-//									+ ", history[" + i + "]: " + history[i] + ", val: " + val + ", date: "
-//									+ new Date(time));
-//						}
+						// if (val > 0) {
+						// System.out.println("ID: " + id + ", updaterate: " +
+						// getUpdaterate()
+						// + ", server updaterate: " + getServerUpdaterate() +
+						// ", updatestep: "
+						// + updateStep + ", max_history: " + max_history + ", start: " +
+						// start
+						// + ", history[" + i + "]: " + history[i] + ", val: " + val +
+						// ", date: "
+						// + new Date(time));
+						// }
 					}
 					addValue(id, time, val, false, series);
 				}
@@ -304,7 +302,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 			System.err.println("Can't find series! " + id);
 		}
 	}
-	
+
 	public void initDelta(String id, double val) {
 		lastVals.put(id, val);
 	}

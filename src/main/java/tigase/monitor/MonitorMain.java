@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Map;
+
 import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -35,30 +36,34 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
+import tigase.monitor.conf.Configuration;
+
 /**
- *
+ * 
  * @author kobit
  */
 public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	
-	private static final String EXIT_CMD = "exit";
+
+	protected static final String EXIT_CMD = "exit";
 	private static final String PROP_FILENAME_DEF = "etc/monitor.properties";
 	private static final String PROP_FILENAME_KEY = "--init";
+	private static Configuration config = null;
 
 	private ClientModuleImpl moduleImpl = null;
 
-	public MonitorMain(String configFile) {
+	public MonitorMain(Configuration config) {
 		super("Tigase Monitor");
-		//System.out.println(sun.net.InetAddressCachePolicy.get());
+		// System.out.println(sun.net.InetAddressCachePolicy.get());
 		moduleImpl = new ClientModuleImpl();
-		moduleImpl.init(configFile, this);
+		moduleImpl.init(config, this);
 		setContentPane(createContent());
 		setJMenuBar(createMenuBar());
 		setPreferredSize(moduleImpl.getPreferredSize());
@@ -96,10 +101,11 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	}
 
 	/**
-     * @param args the command line arguments
-     */
+	 * @param args
+	 *          the command line arguments
+	 */
 	public static void main(String[] args) {
-			
+
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		String propFile = PROP_FILENAME_DEF;
 		if (args != null && args.length > 1) {
@@ -107,10 +113,15 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 				propFile = args[1];
 			}
 		}
-			
 		try {
-			UIManager.setLookAndFeel(
-					"com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+			config = new Configuration(propFile);
+		} catch (Exception e) {
+			System.out.println("init.properties file missing, using defaults.");
+			e.printStackTrace();
+		}
+
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
 		} catch (Exception e) {
 			// ... otherwise just use the system look and feel
 			try {
@@ -120,14 +131,20 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			}
 		}
 		StandardChartTheme theme =
-				(StandardChartTheme)StandardChartTheme.createDarknessTheme();
+				(StandardChartTheme) StandardChartTheme.createDarknessTheme();
 		theme.setChartBackgroundPaint(Color.DARK_GRAY);
 		theme.setPlotBackgroundPaint(new Color(0.15f, 0.15f, 0.15f));
 		ChartFactory.setChartTheme(theme);
-		MonitorMain app = new MonitorMain(propFile);
+		MonitorMain app = new MonitorMain(config);
 		app.pack();
 		RefineryUtilities.centerFrameOnScreen(app);
 		app.setVisible(true);
+		if (config.customWindow()) {
+			CustomWindow customWindow = new CustomWindow(config, app);
+			customWindow.pack();
+			RefineryUtilities.centerFrameOnScreen(customWindow);
+			customWindow.setVisible(true);
+		}
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -140,9 +157,9 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	private void attemptExit() {
 		String title = "Confirm";
 		String message = "Are you sure you want to exit the demo?";
-		int result = JOptionPane.showConfirmDialog(
-				this, message, title, JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE);
+		int result =
+				JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION,
+						JOptionPane.QUESTION_MESSAGE);
 		if (result == JOptionPane.YES_OPTION) {
 			dispose();
 			System.exit(0);
