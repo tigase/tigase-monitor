@@ -37,6 +37,8 @@ public class ChartConfig {
 	private static final String CUSTOM_CHART_MAXY_KEY = "max-x";
 	private static final String CUSTOM_CHART_CNT_TOTALS_KEY = "count-totals";
 	private static final String CUSTOM_CHART_CNT_DELTA_KEY = "count-delta";
+	private static final String CUSTOM_CHART_CNT_PERSEC_KEY = "count-per-sec";
+	private static final String CUSTOM_CHART_APPROXIMATE_KEY = "approximate";
 	private static final String CUSTOM_CHART_SERIES_KEY = "series.";
 
 	private Properties props = new Properties();
@@ -83,4 +85,16 @@ public class ChartConfig {
 		return series.toArray(new String[series.size()]);
 	}
 
+	/**
+	 * @return
+	 */
+	public boolean countPerSec() {
+		String val_str = props.getProperty(CUSTOM_CHART_CNT_PERSEC_KEY, CUSTOM_CHART_BOOL_DEF);
+		return Boolean.parseBoolean(val_str);
+	}
+
+	public boolean approximate() {
+		String val_str = props.getProperty(CUSTOM_CHART_APPROXIMATE_KEY, CUSTOM_CHART_BOOL_DEF);
+		return Boolean.parseBoolean(val_str);
+	}
 }

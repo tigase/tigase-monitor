@@ -212,8 +212,8 @@ public class ClientModuleImpl {
 		row1.add(distr.getPanel());
 
 		TigaseMonitorLine cpu =
-				new TigaseMonitorLine("CPU Load", "CPU %", 100, false, config.getTimeline(),
-						config.getUpdaterate(), config.getServerUpdaterate());
+				new TigaseMonitorLine("CPU Load", "CPU %", 100, false, false, true,
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(cpu, false, true, CPU_USAGE);
 
 		MonitorMain.monitors.add(cpu);
@@ -226,8 +226,8 @@ public class ClientModuleImpl {
 		row1.add(cpu.getPanel());
 
 		TigaseMonitorLine mem =
-				new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, config.getTimeline(),
-						config.getUpdaterate(), config.getServerUpdaterate());
+				new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, false, true,
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(mem, false, true, HEAP_USAGE, NONHEAP_USAGE);
 
 		MonitorMain.monitors.add(mem);
@@ -244,8 +244,9 @@ public class ClientModuleImpl {
 		liveView.add(row2);
 
 		TigaseMonitorLine conns =
-				new TigaseMonitorLine("Connections", "Connections per node", 10, true,
-						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
+				new TigaseMonitorLine("Connections", "Connections per node", 10, true, false,
+						false, config.getTimeline(), config.getUpdaterate(),
+						config.getServerUpdaterate());
 		new DataChange(conns, false, true, C2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS);
 
 		MonitorMain.monitors.add(conns);
@@ -254,7 +255,7 @@ public class ClientModuleImpl {
 		row2.add(conns.getPanel());
 
 		TigaseMonitorLine sm =
-				new TigaseMonitorLine("SM Traffic", "Packets/sec", 50, true,
+				new TigaseMonitorLine("SM Traffic", "Packets/sec", 50, true, true, true,
 						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(sm, true, true, SM_TRAFFIC_R, SM_TRAFFIC_S);
 
@@ -264,7 +265,7 @@ public class ClientModuleImpl {
 		row2.add(sm.getPanel());
 
 		TigaseMonitorLine cl =
-				new TigaseMonitorLine("Cluster Traffic", "Packets/sec", 50, true,
+				new TigaseMonitorLine("Cluster Traffic", "Packets/sec", 50, true, true, true,
 						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(cl, true, true, CL_TRAFFIC_R, CL_TRAFFIC_S);
 

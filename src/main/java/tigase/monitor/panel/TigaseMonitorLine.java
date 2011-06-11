@@ -61,11 +61,16 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	private String yTitle = null;
 	private double yAxisMax = 100;
 	private boolean countTotals = false;
+	private boolean countPerSec = true;
+	private boolean approximate = false;
 	private int timeline = 24 * 360;
 
 	private long max = 0;
 	private JPanel panel = null;
 	private Map<String, Double> lastVals = new LinkedHashMap<String, Double>();
+	private Map<String, double[]> lastResults = new LinkedHashMap<String, double[]>();
+	// private double[] lastResults = { 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d,
+	// 0d, 0d };
 
 	// private XYSeriesCollection data = null;
 	private Map<String, TimeSeries> series_map = new LinkedHashMap<String, TimeSeries>(10);
@@ -81,12 +86,15 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * 
 	 */
 	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
-			boolean countTotals, int timeline, int updaterate, int serverUpdaterare) {
+			boolean countTotals, boolean countPerSec, boolean approximate, int timeline,
+			int updaterate, int serverUpdaterare) {
 
 		super(title, updaterate, serverUpdaterare);
 		this.yTitle = yTitle;
 		this.yAxisMax = yAxisMax;
 		this.countTotals = countTotals;
+		this.countPerSec = countPerSec;
+		this.approximate = approximate;
 		setTimeline(timeline);
 		// data = new XYSeriesCollection();
 		// XYLineAndShapeRenderer renderer = new XYSplineRenderer();
@@ -169,6 +177,8 @@ public class TigaseMonitorLine extends TigaseMonitor {
 			series_map.put(sKey, series);
 			setColor(sKey, c);
 			c = ((Color) c).darker();
+			lastVals.put(sKey, 0d);
+			lastResults.put(sKey, new double[12]);
 		}
 	}
 
@@ -194,7 +204,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		TimeSeries series = series_map.get(key);
 
 		if (series != null) {
-			addValue(key, System.currentTimeMillis(), nextDelta(key, val, 1), true, series);
+			addValue(key, System.currentTimeMillis(), nextDelta(key, val), true, series);
 			xAxis.setLabel(dateFormat.format(new Date()));
 		} else {
 			System.err.println("Can't find series! " + key);
@@ -280,8 +290,8 @@ public class TigaseMonitorLine extends TigaseMonitor {
 							(currentTime - (getServerUpdaterate() * (history.length - i)) * 1000);
 					double val = history[i];
 					if (calcDelta) {
-						val = nextDelta(id, history[i], 1);
-						// if (val > 0) {
+						val = nextDelta(id, history[i]);
+						// if (getTitle().equals("Jingle traffic")) {
 						// System.out.println("ID: " + id + ", updaterate: " +
 						// getUpdaterate()
 						// + ", server updaterate: " + getServerUpdaterate() +
@@ -307,16 +317,32 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		lastVals.put(id, val);
 	}
 
-	public double nextDelta(String id, double val, int update) {
+	public double nextDelta(String id, double val) {
 		Double lastVal = lastVals.get(id);
-		if (lastVal == null) {
-			lastVal = 0d;
-		}
+		double update = countPerSec ? getUpdaterate() : 1;
 		double result = (val - lastVal) / update;
 		lastVals.put(id, val);
-		// if (result > 0) {
-		// System.out.println("ID: " + id + " = " + result);
-		// }
+		if (approximate) {
+			result = calcApproximate(id, result);
+		}
+//		if (getTitle().equals("Presence traffic") && id.equals("green-1")) {
+//			System.out.println("ID: " + id + ", value: " + val + ", result: " + result);
+//		}
+		return result;
+	}
+
+	private double calcApproximate(String key, double val) {
+		double result = val;
+		double[] lastRes = lastResults.get(key);
+		for (int i = 0; i < lastRes.length; i++) {
+			result += lastRes[i];
+			if (i < lastRes.length - 1) {
+				lastRes[i] = lastRes[i + 1];
+			} else {
+				lastRes[i] = val;
+			}
+		}
+		result = result / (lastRes.length + 1);
 		return result;
 	}
 

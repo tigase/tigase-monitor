@@ -22,6 +22,7 @@
  */
 package tigase.monitor.panel;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -65,16 +66,26 @@ public class DataChange implements DataChangeListener {
 		if (monitor != null) {
 			if (loadHistory) {
 				int idx = 1;
-				int delta = (countDelta ? monitor.getServerUpdaterate() : 1);
+				// int delta = (countDelta ? monitor.getServerUpdaterate() : 1);
 				for (String dataId : dataIds) {
 					double[] history = null;
 					switch (DataTypes.decodeTypeIdFromName(dataId)) {
 						case 'L': {
 							Long[] h = (Long[]) bean.getMetricHistory(dataId);
+//							if (monitor.getTitle().equals("Presence traffic") && id.equals("green")) {
+//								long last = h[0];
+//								long[] testA = new long[h.length];
+//								for(int i = 0; i<h.length; i++) {
+//									testA[i] = h[i] - last;
+//									last = h[i];
+//								}
+//								System.out.println("Presences delta: " + Arrays.toString(testA));
+//								System.out.println("Presences: " + Arrays.toString(h));
+//							}
 							if (h != null && h.length > 0) {
 								history = new double[h.length];
 								for (int i = 0; i < h.length; i++) {
-									history[i] = h[i] / delta;
+									history[i] = h[i];
 								}
 							}
 							break;
@@ -84,7 +95,7 @@ public class DataChange implements DataChangeListener {
 							if (h != null && h.length > 0) {
 								history = new double[h.length];
 								for (int i = 0; i < h.length; i++) {
-									history[i] = h[i] / delta;
+									history[i] = h[i];
 								}
 							}
 							break;
@@ -94,7 +105,7 @@ public class DataChange implements DataChangeListener {
 							if (h != null && h.length > 0) {
 								history = new double[h.length];
 								for (int i = 0; i < h.length; i++) {
-									history[i] = h[i] / delta;
+									history[i] = h[i];
 								}
 							}
 							break;
@@ -104,7 +115,7 @@ public class DataChange implements DataChangeListener {
 							if (h != null && h.length > 0) {
 								history = new double[h.length];
 								for (int i = 0; i < h.length; i++) {
-									history[i] = h[i] / delta;
+									history[i] = h[i];
 								}
 							}
 							break;
@@ -140,11 +151,14 @@ public class DataChange implements DataChangeListener {
 						break;
 				}
 				if (value != null) {
+					String ser_id = id + "-" + (idx++);
+//					if (monitor.getTitle().equals("Presence traffic") && id.equals("green")) {
+//						System.out.println(monitor.getTitle() + ", " + ser_id + " value: " + value);
+//					}
 					if (countDelta) {
-						((TigaseMonitorLine) monitor).addValueDelta(id + "-" + (idx++), value
-								/ monitor.getUpdaterate());
+						((TigaseMonitorLine) monitor).addValueDelta(ser_id, value);
 					} else {
-						((TigaseMonitorLine) monitor).addValue(id + "-" + (idx++), value);
+						((TigaseMonitorLine) monitor).addValue(ser_id, value);
 					}
 				}
 			}
@@ -157,20 +171,20 @@ public class DataChange implements DataChangeListener {
 		}
 	}
 
-	public void connectedDelta(String id, JavaJMXProxyOpt bean, Long[] history) {
-		if (history != null && history.length > 0) {
-			double[] long_hist = new double[history.length];
-			for (int i = 0; i < history.length; i++) {
-				long_hist[i] = history[i] / monitor.getServerUpdaterate();
-			}
-			((TigaseMonitorLine) monitor).loadHistory(id, long_hist, true);
-		}
-		monitor.connected(id, bean);
-	}
-
-	public void updateDelta(String id, long val) {
-		double value = val / monitor.getUpdaterate();
-		((TigaseMonitorLine) monitor).addValueDelta(id, value);
-	}
+//	public void connectedDelta(String id, JavaJMXProxyOpt bean, Long[] history) {
+//		if (history != null && history.length > 0) {
+//			double[] long_hist = new double[history.length];
+//			for (int i = 0; i < history.length; i++) {
+//				long_hist[i] = history[i] / monitor.getServerUpdaterate();
+//			}
+//			((TigaseMonitorLine) monitor).loadHistory(id, long_hist, true);
+//		}
+//		monitor.connected(id, bean);
+//	}
+//
+//	public void updateDelta(String id, long val) {
+//		double value = val / monitor.getUpdaterate();
+//		((TigaseMonitorLine) monitor).addValueDelta(id, value);
+//	}
 
 }

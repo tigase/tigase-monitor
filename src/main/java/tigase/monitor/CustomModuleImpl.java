@@ -180,8 +180,8 @@ public class CustomModuleImpl {
 
 		TigaseMonitorLine cpu =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), config.getTimeline(), config.getUpdaterate(),
-						config.getServerUpdaterate());
+						conf.countTotals(), conf.countPerSec(), conf.approximate(),
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(cpu, conf.countDelta(), true, conf.getSeries());
 		MonitorMain.monitors.add(cpu);
 
@@ -195,8 +195,8 @@ public class CustomModuleImpl {
 		conf = config.getChartConfig(2);
 		TigaseMonitorLine mem =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), config.getTimeline(), config.getUpdaterate(),
-						config.getServerUpdaterate());
+						conf.countTotals(), conf.countPerSec(), conf.approximate(),
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(mem, conf.countDelta(), true, conf.getSeries());
 
 		MonitorMain.monitors.add(mem);
@@ -215,8 +215,8 @@ public class CustomModuleImpl {
 		conf = config.getChartConfig(3);
 		TigaseMonitorLine conns =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), config.getTimeline(), config.getUpdaterate(),
-						config.getServerUpdaterate());
+						conf.countTotals(), conf.countPerSec(), conf.approximate(),
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(conns, conf.countDelta(), true, conf.getSeries());
 
 		MonitorMain.monitors.add(conns);
@@ -227,8 +227,8 @@ public class CustomModuleImpl {
 		conf = config.getChartConfig(4);
 		TigaseMonitorLine sm =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), config.getTimeline(), config.getUpdaterate(),
-						config.getServerUpdaterate());
+						conf.countTotals(), conf.countPerSec(), conf.approximate(),
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(sm, conf.countDelta(), true, conf.getSeries());
 
 		MonitorMain.monitors.add(sm);
@@ -239,8 +239,8 @@ public class CustomModuleImpl {
 		conf = config.getChartConfig(5);
 		TigaseMonitorLine cl =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), config.getTimeline(), config.getUpdaterate(),
-						config.getServerUpdaterate());
+						conf.countTotals(), conf.countPerSec(), conf.approximate(),
+						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(cl, conf.countDelta(), true, conf.getSeries());
 
 		MonitorMain.monitors.add(cl);
