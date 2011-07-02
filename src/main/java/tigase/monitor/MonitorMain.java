@@ -241,6 +241,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			public void run() {
 				// System.out.println("Update... " + new Date());
 				for (JavaJMXProxyOpt javaJMXProxy : proxies) {
+					try {
 					if (javaJMXProxy.isInitialized()) {
 						notifier.update(javaJMXProxy.getId(), javaJMXProxy);
 						// System.out.println("Update proxy: " + javaJMXProxy.getId());
@@ -254,6 +255,9 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 										+ monitor.getTitle());
 							}
 						}
+					}
+					} catch (Exception e) {
+						System.err.println("Updated problem: " + e);
 					}
 				}
 			}
