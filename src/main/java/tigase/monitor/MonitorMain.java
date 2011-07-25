@@ -1,20 +1,20 @@
 /*
  * Tigase Jabber/XMPP Server
  * Copyright (C) 2004-2008 "Artur Hefczyc" <artur.hefczyc@tigase.org>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3 of the License.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program. Look for COPYING file in the top folder.
  * If not, see http://www.gnu.org/licenses/.
- * 
+ *
  * $Rev: 6 $
  * Last modified by $Author: kobit $
  * $Date: 2009-09-29 13:37:21 +0100 (Tue, 29 Sep 2009) $
@@ -75,7 +75,7 @@ import tigase.monitor.util.MFileChooser;
 import tigase.stats.JavaJMXProxyOpt;
 
 /**
- * 
+ *
  * @author kobit
  */
 public class MonitorMain extends ApplicationFrame implements ActionListener {
@@ -185,7 +185,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			RefineryUtilities.centerFrameOnScreen(customWindow);
 			customWindow.setVisible(true);
 		}
-	
+
 		dialogDisplay = app.new DialogDisplay(config.getAlarmFileName());
 		dialogDisplay.setDaemon(true);
 		dialogDisplay.start();
@@ -364,8 +364,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	/**
 	 * Method description
-	 * 
-	 * 
+	 *
+	 *
 	 * @param e
 	 */
 	public void actionPerformed(ActionEvent e) {
@@ -455,7 +455,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 		/**
 		 * Method description
-		 * 
+		 *
 		 */
 		@Override
 		public void run() {
@@ -484,7 +484,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 					if (charts != null) {
 						for (JFreeChart chart : charts) {
 							File file =
-									new File(dir, datetime + (++i) + "_" + chart.getTitle().getText() + ext);
+									//new File(dir, datetime + (++i) + "_" + chart.getTitle().getText() + ext);
+									new File(dir, datetime + (++i) + "_" + chart.getTitle().getText().replaceAll("[^\\d\\w\\s]", "_") + ext);
 
 							try {
 								JFreeChart ch = (JFreeChart) chart.clone();
