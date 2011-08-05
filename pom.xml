@@ -12,7 +12,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>tigase</groupId>
-			<artifactId>tigase-licence</artifactId>
+			<artifactId>licence-lib</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
