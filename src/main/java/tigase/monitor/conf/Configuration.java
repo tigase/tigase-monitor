@@ -68,6 +68,10 @@ public class Configuration {
 	private static final String CUSTOM_WINDOW_TIT_KEY = "custom-window.title";
 	private static final String CUSTOM_WINDOW_TIT_DEF = "Custom data charts";
 	private static final String CUSTOM_CHART_KEY = "custom-window.chart.";
+	private static final String MAIN_WINDOW_TIT_KEY = "main-window.title";
+	private static final String MAIN_WINDOW_TIT_DEF = "Tigase Monitor";
+	private static final String DISPLAY_ALARM_KEY = "display-alarm";
+	private static final String DISPLAY_ALARM_DEF = "true";
 
 	private int height = 1100;
 	private List<NodeConfig> nodes = null;
@@ -86,6 +90,8 @@ public class Configuration {
 	private String alarmFileName = ALARM_FILE_NAME_DEF;
 	private boolean customWindow = false;
 	private String customWindowTitle = CUSTOM_WINDOW_TIT_DEF;
+	private String mainWindowTitle = MAIN_WINDOW_TIT_DEF;
+	private boolean displayAlarm = true;
 
 	/**
 	 * Constructs ...
@@ -153,6 +159,9 @@ public class Configuration {
 		customWindow =
 				Boolean.parseBoolean(props.getProperty(CUSTOM_WINDOW_KEY, CUSTOM_WINDOW_DEF));
 		customWindowTitle = props.getProperty(CUSTOM_WINDOW_TIT_KEY, CUSTOM_WINDOW_TIT_DEF);
+		mainWindowTitle = props.getProperty(MAIN_WINDOW_TIT_KEY, MAIN_WINDOW_TIT_DEF);
+		displayAlarm =
+			Boolean.parseBoolean(props.getProperty(DISPLAY_ALARM_KEY, DISPLAY_ALARM_DEF));
 
 		for (String key : props.stringPropertyNames()) {
 			if (key.startsWith(CUSTOM_CHART_KEY)) {
@@ -267,6 +276,10 @@ public class Configuration {
 	public String getCustomTitle() {
 		return customWindowTitle;
 	}
+	
+	public String getMainTitle() {
+		return mainWindowTitle;
+	}
 
 	/**
 	 * @param i
@@ -278,6 +291,13 @@ public class Configuration {
 			conf = new ChartConfig();
 		}
 		return conf;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean displayAlarm() {
+		return displayAlarm;
 	}
 }
 

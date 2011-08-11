@@ -104,7 +104,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	private JTextField dir = null;
 
 	public MonitorMain(Configuration config) {
-		super("Tigase Monitor");
+		super(config.getMainTitle());
 		// System.out.println(sun.net.InetAddressCachePolicy.get());
 		moduleImpl = new ClientModuleImpl();
 		moduleImpl.init(config, this);
@@ -146,7 +146,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	/**
 	 * @param args
-	 *            the command line arguments
+	 *          the command line arguments
 	 */
 	public static void main(String[] args) {
 		final Licence lic;
@@ -159,14 +159,14 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			lic = loader.loadLicence(LICENCE_FILE_DEF);
 
 			switch (lic.check()) {
-			case invalidDates:
-				System.err.println("Licence is expired.");
-				System.exit(13);
-				return;
-			case invalidSignature:
-				System.err.println("Invalid or modified licence file");
-				System.exit(11);
-				return;
+				case invalidDates:
+					System.err.println("Licence is expired.");
+					System.exit(13);
+					return;
+				case invalidSignature:
+					System.err.println("Invalid or modified licence file");
+					System.exit(11);
+					return;
 			}
 
 			String appId = lic.getPropertyAsString("app-id");
@@ -206,7 +206,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 				e2.printStackTrace();
 			}
 		}
-		StandardChartTheme theme = (StandardChartTheme) StandardChartTheme.createDarknessTheme();
+		StandardChartTheme theme =
+				(StandardChartTheme) StandardChartTheme.createDarknessTheme();
 		theme.setChartBackgroundPaint(Color.DARK_GRAY);
 		theme.setPlotBackgroundPaint(new Color(0.15f, 0.15f, 0.15f));
 		ChartFactory.setChartTheme(theme);
@@ -221,44 +222,52 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			customWindow.setVisible(true);
 		}
 
-		dialogDisplay = app.new DialogDisplay(config.getAlarmFileName());
-		dialogDisplay.setDaemon(true);
-		dialogDisplay.start();
+		if (config.displayAlarm()) {
+			dialogDisplay = app.new DialogDisplay(config.getAlarmFileName());
+			dialogDisplay.setDaemon(true);
+			dialogDisplay.start();
 
-		notifier = new DataChange(null, false, false, CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE) {
+			notifier =
+					new DataChange(null, false, false, CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE) {
 
-			private float warningThreshold = config.getWarningThreshold();
-			private float errorThreshold = config.getErrorThreshold();
+						private float warningThreshold = config.getWarningThreshold();
+						private float errorThreshold = config.getErrorThreshold();
 
-			public void update(String id, JavaJMXProxyOpt bean) {
-				for (String dataId : getDataIds()) {
-					float val = (Float) bean.getMetricData(dataId);
-					if (val > errorThreshold) {
-						dialogDisplay.wakeup(JOptionPane.ERROR_MESSAGE, "Resource near limit!",
-								"Critical " + msgMapping.get(dataId) + " usage on " + id + " machine: " + bean.getHostname());
-					}
-				}
-				for (String dataId : getDataIds()) {
-					float val = (Float) bean.getMetricData(dataId);
-					if (val > warningThreshold) {
-						dialogDisplay.wakeup(JOptionPane.WARNING_MESSAGE, "High resource usage!",
-								"High " + msgMapping.get(dataId) + " usage on " + id + " machine: " + bean.getHostname());
-					}
-				}
-			}
+						public void update(String id, JavaJMXProxyOpt bean) {
+							for (String dataId : getDataIds()) {
+								float val = (Float) bean.getMetricData(dataId);
+								if (val > errorThreshold) {
+									dialogDisplay.wakeup(JOptionPane.ERROR_MESSAGE, "Resource near limit!",
+											"Critical " + msgMapping.get(dataId) + " usage on " + id
+													+ " machine: " + bean.getHostname());
+								}
+							}
+							for (String dataId : getDataIds()) {
+								float val = (Float) bean.getMetricData(dataId);
+								if (val > warningThreshold) {
+									dialogDisplay.wakeup(JOptionPane.WARNING_MESSAGE,
+											"High resource usage!", "High " + msgMapping.get(dataId)
+													+ " usage on " + id + " machine: " + bean.getHostname());
+								}
+							}
+						}
 
-		};
+					};
+		}
 
 		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
 		for (NodeConfig nodeConfig : nodeConfigs) {
-			JavaJMXProxyOpt proxy = new JavaJMXProxyOpt(nodeConfig.getDescription(), nodeConfig.getHostname(),
-					nodeConfig.getPort(), nodeConfig.getUserName(), nodeConfig.getPassword(), 1000,
-					config.getUpdaterate() * 1000, config.getLoadHistory());
+			JavaJMXProxyOpt proxy =
+					new JavaJMXProxyOpt(nodeConfig.getDescription(), nodeConfig.getHostname(),
+							nodeConfig.getPort(), nodeConfig.getUserName(), nodeConfig.getPassword(),
+							1000, config.getUpdaterate() * 1000, config.getLoadHistory());
 
 			proxies.add(proxy);
 
-			proxy.addJMXProxyListener(notifier);
+			if (notifier != null) {
+				proxy.addJMXProxyListener(notifier);
+			}
 
 			for (TigaseMonitor monitor : monitors) {
 				proxy.addJMXProxyListener(monitor.getDataChangeListener());
@@ -274,16 +283,20 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 				for (JavaJMXProxyOpt javaJMXProxy : proxies) {
 					try {
 						if (javaJMXProxy.isInitialized()) {
-							notifier.update(javaJMXProxy.getId(), javaJMXProxy);
+							if (notifier != null) {
+								notifier.update(javaJMXProxy.getId(), javaJMXProxy);
+							}
 							// System.out.println("Update proxy: " +
 							// javaJMXProxy.getId());
 							for (TigaseMonitor monitor : monitors) {
 								if (monitor.isReady(javaJMXProxy.getId())) {
 									// System.out.println("Update monitor: " +
 									// monitor.getTitle());
-									monitor.getDataChangeListener().update(javaJMXProxy.getId(), javaJMXProxy);
+									monitor.getDataChangeListener().update(javaJMXProxy.getId(),
+											javaJMXProxy);
 								} else {
-									System.out.println("Update monitor - monitor not ready: " + monitor.getTitle());
+									System.out.println("Update monitor - monitor not ready: "
+											+ monitor.getTitle());
 								}
 							}
 						}
@@ -328,9 +341,11 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 		dirButton.addActionListener(this);
 		dirPanel.add(dirButton);
 
-		int result = JOptionPane.showOptionDialog(this, new Object[] { message, label, delay, repeat_lab, repeat, interval_lab,
-				interval, pngExport, jpgExport, exitOnComplete, labelDir, dirPanel }, "Login", JOptionPane.OK_CANCEL_OPTION,
-				JOptionPane.QUESTION_MESSAGE, null, null, null);
+		int result =
+				JOptionPane.showOptionDialog(this, new Object[] { message, label, delay,
+						repeat_lab, repeat, interval_lab, interval, pngExport, jpgExport,
+						exitOnComplete, labelDir, dirPanel }, "Login", JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.QUESTION_MESSAGE, null, null, null);
 
 		if (result == JOptionPane.OK_OPTION) {
 			long delayLong = -1;
@@ -340,8 +355,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			try {
 				delayLong = Long.parseLong(delay.getText()) * 1000;
 			} catch (Exception e) {
-				JOptionPane.showMessageDialog(this, "Incorrect delay value: " + delay.getText(), "Error",
-						JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(this, "Incorrect delay value: " + delay.getText(),
+						"Error", JOptionPane.ERROR_MESSAGE);
 
 				return;
 			}
@@ -350,7 +365,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 				try {
 					repeatInt = Integer.parseInt(repeat.getText());
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(this, "Incorrect repeat value: " + repeat.getText(), "Error",
+					JOptionPane.showMessageDialog(this,
+							"Incorrect repeat value: " + repeat.getText(), "Error",
 							JOptionPane.ERROR_MESSAGE);
 
 					return;
@@ -361,7 +377,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 				try {
 					intervalLong = Long.parseLong(interval.getText()) * 1000;
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(this, "Incorrect interval value: " + interval.getText(), "Error",
+					JOptionPane.showMessageDialog(this,
+							"Incorrect interval value: " + interval.getText(), "Error",
 							JOptionPane.ERROR_MESSAGE);
 
 					return;
@@ -369,7 +386,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			}
 
 			if ((dir.getText() == null) || dir.getText().isEmpty()) {
-				JOptionPane.showMessageDialog(this, "Please enter valid directory name.", "Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(this, "Please enter valid directory name.",
+						"Error", JOptionPane.ERROR_MESSAGE);
 
 				return;
 			}
@@ -377,11 +395,13 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			boolean exit = exitOnComplete.isSelected();
 
 			if (pngExport.isSelected()) {
-				saveAllTo(new File(dir.getText()), ".png", exit && !jpgExport.isSelected(), delayLong, repeatInt, intervalLong);
+				saveAllTo(new File(dir.getText()), ".png", exit && !jpgExport.isSelected(),
+						delayLong, repeatInt, intervalLong);
 			}
 
 			if (jpgExport.isSelected()) {
-				saveAllTo(new File(dir.getText()), ".jpg", exit, delayLong + 1000, repeatInt, intervalLong);
+				saveAllTo(new File(dir.getText()), ".jpg", exit, delayLong + 1000, repeatInt,
+						intervalLong);
 			}
 		}
 	}
@@ -427,8 +447,9 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	private void attemptExit() {
 		String title = "Confirm";
 		String message = "Are you sure you want to exit the demo?";
-		int result = JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION,
-				JOptionPane.QUESTION_MESSAGE);
+		int result =
+				JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION,
+						JOptionPane.QUESTION_MESSAGE);
 		if (result == JOptionPane.YES_OPTION) {
 			dispose();
 			System.exit(0);
@@ -436,7 +457,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	}
 
 	private void exportTo(String ext) {
-		MFileChooser fc = new MFileChooser("Directory to store all charts as " + ext + " files");
+		MFileChooser fc =
+				new MFileChooser("Directory to store all charts as " + ext + " files");
 
 		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
@@ -449,8 +471,10 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 		}
 	}
 
-	private void saveAllTo(File dir, String ext, boolean exitOnComplete, long delay, int repeat, long interval) {
-		Thread thread = new BackgroundSaver(dir, ext, exitOnComplete, delay, repeat, interval);
+	private void saveAllTo(File dir, String ext, boolean exitOnComplete, long delay,
+			int repeat, long interval) {
+		Thread thread =
+				new BackgroundSaver(dir, ext, exitOnComplete, delay, repeat, interval);
 
 		thread.start();
 	}
@@ -463,7 +487,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 		private long interval = 0;
 		private int repeat = 1;
 
-		private BackgroundSaver(File dir, String ext, boolean exitOnComplete, long delay, int repeat, long interval) {
+		private BackgroundSaver(File dir, String ext, boolean exitOnComplete, long delay,
+				int repeat, long interval) {
 			this.dir = dir;
 			this.ext = ext;
 			this.exitOnComplete = exitOnComplete;
@@ -505,8 +530,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 							File file =
 							// new File(dir, datetime + (++i) + "_" +
 							// chart.getTitle().getText() + ext);
-							new File(dir, datetime + (++i) + "_" + chart.getTitle().getText().replaceAll("[^\\d\\w\\s]", "_")
-									+ ext);
+									new File(dir, datetime + (++i) + "_"
+											+ chart.getTitle().getText().replaceAll("[^\\d\\w\\s]", "_") + ext);
 
 							try {
 								JFreeChart ch = (JFreeChart) chart.clone();

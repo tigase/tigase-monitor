@@ -177,7 +177,11 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			if (tmp > 60f) {
 				cpu.setForeground(Color.red);
 			} else {
-				cpu.setForeground(labelCol);
+				if (tmp > 30f) {
+					cpu.setForeground(Color.YELLOW);
+				} else {
+					cpu.setForeground(labelCol);
+				}
 			}
 			long sm_traffic =
 					(Long) servBean.getMetricData(SM_TRAFFIC_R)
@@ -190,7 +194,11 @@ public class TigaseTextMonitor extends TigaseMonitor {
 							sm_traffic_delta, sm_queue);
 			smPackets.setText(s);
 			if (sm_traffic_delta > 10000 || sm_queue > 1000) {
-				smPackets.setForeground(Color.red);
+				if (sm_queue > 1000) {
+					smPackets.setForeground(Color.red);
+				} else {
+					smPackets.setForeground(Color.YELLOW);
+				}
 			} else {
 				smPackets.setForeground(labelCol);
 			}
@@ -214,7 +222,11 @@ public class TigaseTextMonitor extends TigaseMonitor {
 							cl_traffic_delta, cl_queue, cl_io_queue);
 			clPackets.setText(s);
 			if (cl_traffic_delta > 10000 || cl_queue > 1000 || cl_io_queue > 10000) {
-				clPackets.setForeground(Color.red);
+				if (cl_queue > 1000 || cl_io_queue > 10000) {
+					clPackets.setForeground(Color.red);
+				} else {
+					clPackets.setForeground(Color.YELLOW);
+				}
 			} else {
 				clPackets.setForeground(labelCol);
 			}
@@ -227,7 +239,11 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			if (mem_usage > 60f || nh_usage > 60) {
 				mem.setForeground(Color.red);
 			} else {
-				mem.setForeground(labelCol);
+				if (mem_usage > 30f || nh_usage > 30) {
+					mem.setForeground(Color.YELLOW);
+				} else {
+					mem.setForeground(labelCol);
+				}
 			}
 			int queue_wait = (Integer) servBean.getMetricData(QUEUE_WAIT);
 			s = MessageFormat.format("Queues: {0,number,#}", queue_wait);

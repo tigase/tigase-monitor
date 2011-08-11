@@ -190,6 +190,12 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * @param val
 	 */
 	public synchronized void addValue(String key, double val) {
+		Double lastVal = lastVals.get(key);
+		if (val == 0 && lastVal != null) {
+			val = lastVal;
+		}
+		lastVals.put(key, val);
+
 		TimeSeries series = series_map.get(key);
 
 		if (series != null) {
@@ -201,6 +207,11 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	}
 
 	public synchronized void addValueDelta(String key, double val) {
+		Double lastVal = lastVals.get(key);
+		if (val == 0 && lastVal != null) {
+			val = lastVal;
+		}
+
 		TimeSeries series = series_map.get(key);
 
 		if (series != null) {
