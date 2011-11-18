@@ -45,6 +45,7 @@ public abstract class TigaseMonitor {
 	private int updaterate = 10;
 	private int serverUpdaterate = 10;
 	private String title = null;
+	private Map<String, Boolean> historyLoaded = new LinkedHashMap<String, Boolean>(4);
 
 	public TigaseMonitor(String title, int updaterate, int serverUpdaterate) {
 		this.updaterate = updaterate;
@@ -90,6 +91,14 @@ public abstract class TigaseMonitor {
 
 	public int getServerUpdaterate() {
 		return serverUpdaterate;
+	}
+	
+	public synchronized void loadHistory(String id, double[] history, boolean calcDelta) {
+		historyLoaded.put(id, true);
+	}
+	
+	public boolean historyLoaded(String id) {
+		return historyLoaded.get(id) != null;
 	}
 
 	/**

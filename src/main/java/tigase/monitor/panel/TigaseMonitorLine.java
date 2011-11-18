@@ -80,6 +80,8 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	private DateAxis xAxis = null;
 	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private Map<String, Double> oldVal = new LinkedHashMap<String, Double>(4);
+	private Map<String, Boolean> first = new LinkedHashMap<String, Boolean>(4);
 
 	/**
 	 * Constructs ...
@@ -190,11 +192,13 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * @param val
 	 */
 	public synchronized void addValue(String key, double val) {
-		Double lastVal = lastVals.get(key);
-		if (val == 0 && lastVal != null) {
-			val = lastVal;
+		if (val == 0 && oldVal.get(key) != null) {
+			val = oldVal.get(key);
+			oldVal.put(key, 0.0);
 		}
-		lastVals.put(key, val);
+		if (val != 0) {
+			oldVal.put(key, val);
+		}
 
 		TimeSeries series = series_map.get(key);
 
@@ -206,11 +210,34 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	public synchronized void addValueDelta(String key, double val) {
-		Double lastVal = lastVals.get(key);
-		if (val == 0 && lastVal != null) {
-			val = lastVal;
-		}
+	public synchronized void addValueDelta(String key, double p_val) {
+		double val = p_val;
+//		if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+//			System.err.println("Title: " + getTitle() + ", ID: " + key + " 1 value added: "
+//					+ val + ", oldVal: " + oldVal.get(key));
+//		}
+//		if (first.get(key) != null && first.get(key)) {
+//			first.put(key, false);
+//			if (oldVal.get(key) != null) {
+//				val = oldVal.get(key);
+//			}
+//			if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+//				System.err.println("Title: " + getTitle() + ", ID: " + key
+//						+ " first value added: " + val + ", oldVal: " + oldVal.get(key));
+//			}
+//		} else {
+			if (val == 0 && oldVal.get(key) != null) {
+				val = oldVal.get(key);
+				oldVal.put(key, 0.0);
+			}
+			if (val != 0) {
+				oldVal.put(key, val);
+			}
+//		}
+//		if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+//			System.err.println("Title: " + getTitle() + ", ID: " + key + " 2 value added: "
+//					+ val + ", oldVal: " + oldVal.get(key));
+//		}
 
 		TimeSeries series = series_map.get(key);
 
@@ -281,6 +308,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * @param history
 	 */
 	public synchronized void loadHistory(String id, double[] history, boolean calcDelta) {
+		super.loadHistory(id, history, calcDelta);
 		TimeSeries series = series_map.get(id);
 
 		int updateStep = getUpdaterate() / getServerUpdaterate();
@@ -294,12 +322,13 @@ public class TigaseMonitorLine extends TigaseMonitor {
 			initDelta(id, history[start]);
 
 			long currentTime = System.currentTimeMillis();
-
+			double val = 0.0;
 			for (int i = start; i < history.length; i += updateStep) {
 				if (i < history.length) {
 					long time =
-							(currentTime - (getServerUpdaterate() * (history.length - i)) * 1000);
-					double val = history[i];
+							(currentTime - ((getServerUpdaterate() * (history.length - i)) * 1000
+									+ getServerUpdaterate() * 1000));
+					val = history[i];
 					if (calcDelta) {
 						val = nextDelta(id, history[i]);
 						// if (getTitle().equals("Jingle traffic")) {
@@ -317,28 +346,35 @@ public class TigaseMonitorLine extends TigaseMonitor {
 					addValue(id, time, val, false, series);
 				}
 			}
+			if (getTitle() == "SM Traffic" && id.equalsIgnoreCase("yellow-1")) {
+				System.err.println("Title: " + getTitle() + ", ID: " + id + " last value added: "
+						+ val);
+			}
+			oldVal.put(id, val);
 
 			series.fireSeriesChanged();
 		} else {
 			System.err.println("Can't find series! " + id);
 		}
+		first.put(id, true);
 	}
 
 	public void initDelta(String id, double val) {
 		lastVals.put(id, val);
 	}
 
-	public double nextDelta(String id, double val) {
-		Double lastVal = lastVals.get(id);
+	public double nextDelta(String key, double val) {
+		Double lastVal = lastVals.get(key);
 		double update = countPerSec ? getUpdaterate() : 1;
 		double result = (val - lastVal) / update;
-		lastVals.put(id, val);
+		lastVals.put(key, val);
 		if (approximate) {
-			result = calcApproximate(id, result);
+			result = calcApproximate(key, result);
 		}
-//		if (getTitle().equals("Presence traffic") && id.equals("green-1")) {
-//			System.out.println("ID: " + id + ", value: " + val + ", result: " + result);
-//		}
+		// if (getTitle().equals("Presence traffic") && id.equals("green-1")) {
+		// System.out.println("ID: " + id + ", value: " + val + ", result: " +
+		// result);
+		// }
 		return result;
 	}
 
