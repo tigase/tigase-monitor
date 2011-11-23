@@ -273,6 +273,14 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	}
 
 	@Override
+	public void disconnected(String id) {
+		super.disconnected(id);
+		if (id.equals(this.id)) {
+			details.setText("Waiting for data from the server");
+		}
+		}
+
+	@Override
 	public List<JFreeChart> getCharts() {
 		return null;
 	}
