@@ -67,7 +67,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 	private long max = 0;
 	private JPanel panel = null;
-	private Map<String, Double> lastVals = new LinkedHashMap<String, Double>();
+	private Map<String, LastVal> lastVals = new LinkedHashMap<String, LastVal>();
 	private Map<String, double[]> lastResults = new LinkedHashMap<String, double[]>();
 	// private double[] lastResults = { 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d,
 	// 0d, 0d };
@@ -179,7 +179,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 			series_map.put(sKey, series);
 			setColor(sKey, c);
 			c = ((Color) c).darker();
-			lastVals.put(sKey, 0d);
+			lastVals.put(sKey, new LastVal(0d));
 			lastResults.put(sKey, new double[12]);
 		}
 	}
@@ -192,10 +192,16 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	 * @param val
 	 */
 	public synchronized void addValue(String key, double val) {
+		// If the connection to the server is broken we can get zero's here
+		// but we do not want to show zeros to the end-user, we better wait for
+		// connection
+		// re-established and real values
+		// Zero is OK if there was no oldVal set yet, otherwise zero is not OK
 		if (val == 0 && oldVal.get(key) != null) {
 			val = oldVal.get(key);
 			oldVal.put(key, 0.0);
 		}
+		// Saving current non-zero value for later use
 		if (val != 0) {
 			oldVal.put(key, val);
 		}
@@ -212,37 +218,40 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 	public synchronized void addValueDelta(String key, double p_val) {
 		double val = p_val;
-//		if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-//			System.err.println("Title: " + getTitle() + ", ID: " + key + " 1 value added: "
-//					+ val + ", oldVal: " + oldVal.get(key));
-//		}
-//		if (first.get(key) != null && first.get(key)) {
-//			first.put(key, false);
-//			if (oldVal.get(key) != null) {
-//				val = oldVal.get(key);
-//			}
-//			if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-//				System.err.println("Title: " + getTitle() + ", ID: " + key
-//						+ " first value added: " + val + ", oldVal: " + oldVal.get(key));
-//			}
-//		} else {
-			if (val == 0 && oldVal.get(key) != null) {
-				val = oldVal.get(key);
-				oldVal.put(key, 0.0);
-			}
-			if (val != 0) {
-				oldVal.put(key, val);
-			}
-//		}
-//		if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-//			System.err.println("Title: " + getTitle() + ", ID: " + key + " 2 value added: "
-//					+ val + ", oldVal: " + oldVal.get(key));
-//		}
+		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+		// System.err.println("Title: " + getTitle() + ", ID: " + key +
+		// " 1 value added: "
+		// + val + ", oldVal: " + oldVal.get(key));
+		// }
+		// if (first.get(key) != null && first.get(key)) {
+		// first.put(key, false);
+		// if (oldVal.get(key) != null) {
+		// val = oldVal.get(key);
+		// }
+		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+		// System.err.println("Title: " + getTitle() + ", ID: " + key
+		// + " first value added: " + val + ", oldVal: " + oldVal.get(key));
+		// }
+		// } else {
+		if (val == 0 && oldVal.get(key) != null) {
+			val = oldVal.get(key);
+			oldVal.put(key, 0.0);
+		}
+		if (val != 0) {
+			oldVal.put(key, val);
+		}
+		// }
+		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
+		// System.err.println("Title: " + getTitle() + ", ID: " + key +
+		// " 2 value added: "
+		// + val + ", oldVal: " + oldVal.get(key));
+		// }
 
 		TimeSeries series = series_map.get(key);
 
 		if (series != null) {
-			addValue(key, System.currentTimeMillis(), nextDelta(key, val), true, series);
+			long time = System.currentTimeMillis();
+			addValue(key, time, nextDelta(key, time, val), true, series);
 			xAxis.setLabel(dateFormat.format(new Date()));
 		} else {
 			System.err.println("Can't find series! " + key);
@@ -319,18 +328,19 @@ public class TigaseMonitorLine extends TigaseMonitor {
 					((history.length > max_history * updateStep) ? history.length - max_history
 							* updateStep : 0);
 
-			initDelta(id, history[start]);
-
 			long currentTime = System.currentTimeMillis();
+			long time =
+					(currentTime - ((getServerUpdaterate() * (history.length - start)) * 1000 + getServerUpdaterate() * 1000));
+			initDelta(id, time, history[start]);
+
 			double val = 0.0;
 			for (int i = start; i < history.length; i += updateStep) {
 				if (i < history.length) {
-					long time =
-							(currentTime - ((getServerUpdaterate() * (history.length - i)) * 1000
-									+ getServerUpdaterate() * 1000));
+					time =
+							(currentTime - ((getServerUpdaterate() * (history.length - i)) * 1000 + getServerUpdaterate() * 1000));
 					val = history[i];
 					if (calcDelta) {
-						val = nextDelta(id, history[i]);
+						val = nextDelta(id, time, history[i]);
 						// if (getTitle().equals("Jingle traffic")) {
 						// System.out.println("ID: " + id + ", updaterate: " +
 						// getUpdaterate()
@@ -359,15 +369,19 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		first.put(id, true);
 	}
 
-	public void initDelta(String id, double val) {
-		lastVals.put(id, val);
+	public void initDelta(String id, long time, double val) {
+		lastVals.put(id, new LastVal(time, val));
 	}
 
-	public double nextDelta(String key, double val) {
-		Double lastVal = lastVals.get(key);
+	public double nextDelta(String key, long time, double val) {
+		LastVal lastVal = lastVals.get(key);
 		double update = countPerSec ? getUpdaterate() : 1;
-		double result = (val - lastVal) / update;
-		lastVals.put(key, val);
+		double approxTime = (time - lastVal.time) / 1000;
+		if (approxTime == 0) {
+			approxTime = 1;
+		}
+		double result = (val - lastVal.val) / (approxTime * update);
+		lastVals.put(key, new LastVal(time, val));
 		if (approximate) {
 			result = calcApproximate(key, result);
 		}
@@ -478,4 +492,19 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 		return chart;
 	}
+
+	private class LastVal {
+		private long time = 0;
+		private double val = 0;
+
+		private LastVal(long t, double v) {
+			time = t;
+			val = v;
+		}
+
+		private LastVal(double v) {
+			this(System.currentTimeMillis(), v);
+		}
+	}
+
 }
