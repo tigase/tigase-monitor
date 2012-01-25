@@ -380,15 +380,20 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		if (approxTime == 0) {
 			approxTime = 1;
 		}
-		double result = (val - lastVal.val) / (approxTime * update);
+//		double result = (val - lastVal.val) / (approxTime * update);
+		double result = (val - lastVal.val) / (approxTime);
 		lastVals.put(key, new LastVal(time, val));
+//		if (getTitle().equals("XMPP Ping traffic") && key.equals("green-2")) {
+//			System.out.println("ID: " + key + ", value: " + val + ", update: " + update
+//					+ ", approxTime: " + approxTime + ", lastVal.val: " + lastVal.val
+//					+ ", (val - lastVal): " + (val - lastVal.val) + ", result: " + result);
+//		}
 		if (approximate) {
 			result = calcApproximate(key, result);
+//			if (getTitle().equals("XMPP Ping traffic") && key.equals("green-2")) {
+//				System.out.println("ID: " + key + ", approx result: " + result);
+//			}
 		}
-		// if (getTitle().equals("Presence traffic") && id.equals("green-1")) {
-		// System.out.println("ID: " + id + ", value: " + val + ", result: " +
-		// result);
-		// }
 		return result;
 	}
 

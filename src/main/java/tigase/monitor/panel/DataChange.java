@@ -73,18 +73,16 @@ public class DataChange implements DataChangeListener {
 						switch (DataTypes.decodeTypeIdFromName(dataId)) {
 							case 'L': {
 								Long[] h = (Long[]) bean.getMetricHistory(dataId);
-								// if (monitor.getTitle().equals("Presence traffic") &&
-								// id.equals("green")) {
-								// long last = h[0];
-								// long[] testA = new long[h.length];
-								// for(int i = 0; i<h.length; i++) {
-								// testA[i] = h[i] - last;
-								// last = h[i];
-								// }
-								// System.out.println("Presences delta: " +
-								// Arrays.toString(testA));
-								// System.out.println("Presences: " + Arrays.toString(h));
-								// }
+//								if (monitor.getTitle().equals("XMPP Ping traffic")) {
+//									long last = h[0];
+//									long[] testA = new long[h.length];
+//									for (int i = 0; i < h.length; i++) {
+//										testA[i] = h[i] - last;
+//										last = h[i];
+//									}
+//									System.out.println("Ping delta: " + id + ": " + Arrays.toString(testA));
+//									System.out.println(dataId + ": " + id + ": " + Arrays.toString(h));
+//								}
 								if (h != null && h.length > 0) {
 									history = new double[h.length];
 									for (int i = 0; i < h.length; i++) {
