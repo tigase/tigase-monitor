@@ -21,7 +21,7 @@ cp target/tigase-monitor*jar-with-dependencies.jar $DIR/libs/tigase-monitor.jar
 cp sounds/* $DIR/sounds/
 cp bin/monitor.sh $DIR/
 cp etc/${1}-init.properties $DIR/etc/monitor.properties
-cp ../client-licenses/${1}-monitor.licence $DIR/etc/monitor.licence
+cp ../tigase-private/client-licenses/${1}-monitor.licence $DIR/etc/monitor.licence
 
 tar -czf $DIR.tgz $DIR
 
