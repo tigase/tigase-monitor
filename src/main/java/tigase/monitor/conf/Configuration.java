@@ -117,6 +117,7 @@ public class Configuration {
 
 		for (String node : nodes_arr) {
 			if (!node.trim().isEmpty()) {
+				int port = 9050;
 				String[] node_arr = node.split(":");
 				String user = userName;
 
@@ -130,8 +131,17 @@ public class Configuration {
 					pass = node_arr[3];
 				}
 
+				if (node_arr.length > 4) {
+					String port_no = node_arr[4];
+					try {
+						port = Integer.parseInt(port_no);
+					} catch (NumberFormatException nfe) {
+						port = 9050;
+					}
+				}
+
 				nodes
-						.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], 9050, user, pass));
+						.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], port, user, pass));
 			}
 		}
 
@@ -161,15 +171,16 @@ public class Configuration {
 		customWindowTitle = props.getProperty(CUSTOM_WINDOW_TIT_KEY, CUSTOM_WINDOW_TIT_DEF);
 		mainWindowTitle = props.getProperty(MAIN_WINDOW_TIT_KEY, MAIN_WINDOW_TIT_DEF);
 		displayAlarm =
-			Boolean.parseBoolean(props.getProperty(DISPLAY_ALARM_KEY, DISPLAY_ALARM_DEF));
+				Boolean.parseBoolean(props.getProperty(DISPLAY_ALARM_KEY, DISPLAY_ALARM_DEF));
 
 		for (String key : props.stringPropertyNames()) {
 			if (key.startsWith(CUSTOM_CHART_KEY)) {
 				String prop_full_key = key.substring(CUSTOM_CHART_KEY.length());
 				int idx = prop_full_key.indexOf('.');
 				String prop_idx_str = prop_full_key.substring(0, idx);
-//				System.out.println("prop_full_key: " + prop_full_key + ", prop_idx_str: "
-//						+ prop_idx_str);
+				// System.out.println("prop_full_key: " + prop_full_key +
+				// ", prop_idx_str: "
+				// + prop_idx_str);
 				Integer prop_idx = Integer.decode(prop_idx_str);
 				String prop_key = prop_full_key.substring(idx + 1);
 				ChartConfig chartConfig = customCharts.get(prop_idx);
@@ -178,8 +189,9 @@ public class Configuration {
 					customCharts.put(prop_idx, chartConfig);
 				}
 				chartConfig.addProperty(prop_key, props.getProperty(key));
-//				System.out.println("IDX: " + prop_idx + ", prop_key: " + prop_key + ", val: "
-//						+ props.getProperty(key));
+				// System.out.println("IDX: " + prop_idx + ", prop_key: " + prop_key +
+				// ", val: "
+				// + props.getProperty(key));
 			}
 		}
 	}
@@ -276,7 +288,7 @@ public class Configuration {
 	public String getCustomTitle() {
 		return customWindowTitle;
 	}
-	
+
 	public String getMainTitle() {
 		return mainWindowTitle;
 	}
