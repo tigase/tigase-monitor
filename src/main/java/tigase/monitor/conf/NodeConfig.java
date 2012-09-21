@@ -63,6 +63,12 @@ public class NodeConfig {
 		this.port = port;
 		this.userName = userName;
 		this.password = password;
+
+
+		System.out.println(
+			String.format( "node config, description: %1$s \t color: %2$s \t hostname: %3$s \t port: %4$s \t userName: %5$s \t password: %6$s \t ", description, colour, hostname, port, userName, password )
+			);		
+
 	}
 
 	//~--- get methods ----------------------------------------------------------
