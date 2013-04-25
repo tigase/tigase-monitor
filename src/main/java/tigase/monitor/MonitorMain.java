@@ -66,9 +66,6 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
-import org.tigase.licence.Licence;
-import org.tigase.licence.LicenceLoader;
-import org.tigase.licence.LicenceLoaderFactory;
 
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
@@ -78,7 +75,7 @@ import tigase.monitor.util.MFileChooser;
 import tigase.stats.JavaJMXProxyOpt;
 
 /**
- * 
+ *
  * @author kobit
  */
 public class MonitorMain extends ApplicationFrame implements ActionListener {
@@ -90,7 +87,6 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	protected static final String EXIT_CMD = "exit";
 	private static final String PROP_FILENAME_DEF = "etc/monitor.properties";
-	private static final File LICENCE_FILE_DEF = new File("etc/monitor.licence");
 
 	private static final String PROP_FILENAME_KEY = "--init";
 	private static Configuration config = null;
@@ -149,39 +145,6 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 	 *          the command line arguments
 	 */
 	public static void main(String[] args) {
-		final Licence lic;
-		try {
-			final LicenceLoader loader = LicenceLoaderFactory.create();
-			if (!LICENCE_FILE_DEF.exists()) {
-				System.err.println("Licence file doesn't exists!");
-				System.exit(10);
-			}
-			lic = loader.loadLicence(LICENCE_FILE_DEF);
-
-			switch (lic.check()) {
-				case invalidDates:
-					System.err.println("Licence is expired.");
-					System.exit(13);
-					return;
-				case invalidSignature:
-					System.err.println("Invalid or modified licence file");
-					System.exit(11);
-					return;
-			}
-
-			String appId = lic.getPropertyAsString("app-id");
-			if (appId == null || !appId.equals("tigase-monitor")) {
-				System.err.println("This is not licence for Tigase Monitor!");
-				System.exit(14);
-				return;
-			}
-
-		} catch (Exception e) {
-			System.err.println("Can't load licence file. Error: " + e.getMessage());
-			System.exit(12);
-			return;
-		}
-
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		String propFile = PROP_FILENAME_DEF;
 		if (args != null && args.length > 1) {
@@ -408,8 +371,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	/**
 	 * Method description
-	 * 
-	 * 
+	 *
+	 *
 	 * @param e
 	 */
 	public void actionPerformed(ActionEvent e) {
@@ -499,7 +462,7 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 		/**
 		 * Method description
-		 * 
+		 *
 		 */
 		@Override
 		public void run() {
