@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+				 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyy-MM-dd/HH:mm:ss</maven.build.timestamp.format>
@@ -47,7 +47,7 @@
 					<timestampFormat>{0,date} {0,time}</timestampFormat>
 					<doCheck>false</doCheck>
 					<doUpdate>false</doUpdate>
-					 <shortRevisionLength>8</shortRevisionLength>
+					<shortRevisionLength>8</shortRevisionLength>
 				</configuration>
 				<executions>
 					<execution>
@@ -72,7 +72,7 @@
 						<configuration>
 							<providerSelection>2.0</providerSelection>
 							<properties>
-								<script>git rev-list master --count</script>
+								<script>git rev-list HEAD --count</script>
 							</properties>
 							<source>
 								def command = project.properties.script
@@ -134,41 +134,6 @@
 					</archive>
 				</configuration>
 			</plugin>
-
-			<plugin>
-                <groupId>com.github.wvengen</groupId>
-                <artifactId>proguard-maven-plugin</artifactId>
-				<version>2.0.6</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>net.sf.proguard</groupId>
-                        <artifactId>proguard-base</artifactId>
-                        <version>4.9</version>
-                        <scope>runtime</scope>
-                    </dependency>
-                </dependencies>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>proguard</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<options>
-						<option>-allowaccessmodification</option>
-						<option>-dontskipnonpubliclibraryclasses</option>
-						<option>-keep public class tigase.monitor.MonitorMain { public
-							static void main(java.lang.String[]);}
-						</option>
-					</options>
-					<libs>
-						<lib>${java.home}/lib/rt.jar</lib>
-					</libs>
-				</configuration>
-			</plugin>
-
 		</plugins>
 	</build>
 	<repositories>
@@ -186,4 +151,16 @@
 			</snapshots>
 		</repository>
 	</repositories>
+	<distributionManagement>
+		<repository>
+			<id>tigase</id>
+			<name>Tigase repository</name>
+			<url>scp://maven.tigase.org:/home/webapp/maven-repository</url>
+		</repository>
+		<snapshotRepository>
+			<id>tigase-snapshot</id>
+			<name>Tigase snapshot repository</name>
+			<url>scp://build.xmpp-test.net:/home/maven/repository</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>
