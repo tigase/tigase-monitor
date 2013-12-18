@@ -17,7 +17,13 @@
 		<url>https://projects.tigase.org/projects/tigase-monitor/repository</url>
 	</scm>
 	
-	
+	<licenses>
+		<license>
+			<name>GNU Affero General Public License GPLv3</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+		</license>
+	</licenses>
+
 	<dependencies>
 		<dependency>
 			<groupId>tigase</groupId>
@@ -122,17 +128,50 @@
 				<!-- NOTE: We don't need a groupId specification because the group is
 				org.apache.maven.plugins ...which is assumed by default. -->
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<archive>
-						<manifest>
-							<mainClass>tigase.monitor.MonitorMain</mainClass>
-						</manifest>
-					</archive>
-				</configuration>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>jar-with-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<finalName>${project.artifactId}</finalName>
+							<appendAssemblyId>false</appendAssemblyId>
+							<outputDirectory>libs</outputDirectory>
+							<archive>
+								<manifest>
+									<mainClass>tigase.monitor.MonitorMain</mainClass>
+								</manifest>
+							</archive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>dist</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/dist.xml</descriptor>
+							</descriptors>
+							<tarLongFileMode>gnu</tarLongFileMode>
+							<finalName>${project.artifactId}-${project.version}-b${gitVersion}</finalName>
+							<outputDirectory>pack</outputDirectory>
+							<archive>
+								<manifest>
+									<mainClass>tigase.monitor.MonitorMain</mainClass>
+								</manifest>
+							</archive>
+							<!--<appendAssemblyId>false</appendAssemblyId>-->
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

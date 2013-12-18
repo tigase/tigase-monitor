@@ -1,24 +1,19 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2011 "Artur Hefczyc" <artur.hefczyc@tigase.org>
+ * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
- * If not, see http://www.gnu.org/licenses/.
- *
- * $Rev: 2411 $
- * Last modified by $Author: kobit $
- * $Date: 2010-10-27 20:27:58 -0600 (Wed, 27 Oct 2010) $
- * 
  */
 package tigase.monitor;
 
@@ -68,21 +63,5 @@ public class CustomWindow extends JFrame {
 		content.add(tabs);
 		return content;
 	}
-
-//	private JMenuBar createMenuBar() {
-//		JMenuBar menuBar = new JMenuBar();
-//
-//		JMenu monitorMenu = moduleImpl.getJMenu(menuBar);
-//
-//		monitorMenu.addSeparator();
-//
-//		JMenuItem exitItem = new JMenuItem("Exit", 'x');
-//		exitItem.setActionCommand(MonitorMain.EXIT_CMD);
-//		exitItem.addActionListener(parent);
-//		monitorMenu.add(exitItem);
-//
-//		menuBar.add(monitorMenu);
-//		return menuBar;
-//	}
 
 }

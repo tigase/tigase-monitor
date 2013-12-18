@@ -1,25 +1,20 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2008 "Artur Hefczyc" <artur.hefczyc@tigase.org>
+ * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
- * If not, see http://www.gnu.org/licenses/.
- *
- * $Rev: 11 $
- * Last modified by $Author: kobit $
- * $Date: 2009-10-03 01:18:34 +0100 (Sat, 03 Oct 2009) $
  */
-
 package tigase.monitor.panel;
 
 import org.jfree.chart.ChartPanel;
@@ -86,6 +81,16 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	/**
 	 * Constructs ...
 	 * 
+	 *
+	 * @param title
+	 * @param yTitle
+	 * @param yAxisMax
+	 * @param countTotals
+	 * @param countPerSec
+	 * @param approximate
+	 * @param timeline
+	 * @param updaterate
+	 * @param serverUpdaterare
 	 */
 	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
 			boolean countTotals, boolean countPerSec, boolean approximate, int timeline,
@@ -98,11 +103,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		this.countPerSec = countPerSec;
 		this.approximate = approximate;
 		setTimeline(timeline);
-		// data = new XYSeriesCollection();
-		// XYLineAndShapeRenderer renderer = new XYSplineRenderer();
-		// renderer.setBaseShapesVisible(false);
-		// JFreeChart chart1 = createChart(renderer);
-		// charts.add(chart1);
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 
 		renderer.setBaseShapesVisible(false);
@@ -111,16 +111,11 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 		charts.add(chart2);
 
-		// ChartPanel chartPanel1 = new ChartPanel(chart1);
 		ChartPanel chartPanel2 = new ChartPanel(chart2);
 
-		// JTabbedPane tabs = new JTabbedPane();
-		// tabs.add("Splines", chartPanel1);
-		// tabs.add("Lines", chartPanel2);
 		panel = new JPanel(new BorderLayout());
 		panel.setBackground(Color.DARK_GRAY);
 
-		// panel.add(tabs);
 		panel.add(chartPanel2);
 	}
 
@@ -218,21 +213,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 	public synchronized void addValueDelta(String key, double p_val) {
 		double val = p_val;
-		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-		// System.err.println("Title: " + getTitle() + ", ID: " + key +
-		// " 1 value added: "
-		// + val + ", oldVal: " + oldVal.get(key));
-		// }
-		// if (first.get(key) != null && first.get(key)) {
-		// first.put(key, false);
-		// if (oldVal.get(key) != null) {
-		// val = oldVal.get(key);
-		// }
-		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-		// System.err.println("Title: " + getTitle() + ", ID: " + key
-		// + " first value added: " + val + ", oldVal: " + oldVal.get(key));
-		// }
-		// } else {
 		if (val == 0 && oldVal.get(key) != null) {
 			val = oldVal.get(key);
 			oldVal.put(key, 0.0);
@@ -240,12 +220,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		if (val != 0) {
 			oldVal.put(key, val);
 		}
-		// }
-		// if (getTitle() == "SM Traffic" && key.equalsIgnoreCase("yellow-1")) {
-		// System.err.println("Title: " + getTitle() + ", ID: " + key +
-		// " 2 value added: "
-		// + val + ", oldVal: " + oldVal.get(key));
-		// }
 
 		TimeSeries series = series_map.get(key);
 
@@ -341,17 +315,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 					val = history[i];
 					if (calcDelta) {
 						val = nextDelta(id, time, history[i]);
-						// if (getTitle().equals("Jingle traffic")) {
-						// System.out.println("ID: " + id + ", updaterate: " +
-						// getUpdaterate()
-						// + ", server updaterate: " + getServerUpdaterate() +
-						// ", updatestep: "
-						// + updateStep + ", max_history: " + max_history + ", start: " +
-						// start
-						// + ", history[" + i + "]: " + history[i] + ", val: " + val +
-						// ", date: "
-						// + new Date(time));
-						// }
 					}
 					addValue(id, time, val, false, series);
 				}
@@ -380,19 +343,10 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		if (approxTime == 0) {
 			approxTime = 1;
 		}
-//		double result = (val - lastVal.val) / (approxTime * update);
 		double result = (val - lastVal.val) / (approxTime);
 		lastVals.put(key, new LastVal(time, val));
-//		if (getTitle().equals("XMPP Ping traffic") && key.equals("green-2")) {
-//			System.out.println("ID: " + key + ", value: " + val + ", update: " + update
-//					+ ", approxTime: " + approxTime + ", lastVal.val: " + lastVal.val
-//					+ ", (val - lastVal): " + (val - lastVal.val) + ", result: " + result);
-//		}
 		if (approximate) {
 			result = calcApproximate(key, result);
-//			if (getTitle().equals("XMPP Ping traffic") && key.equals("green-2")) {
-//				System.out.println("ID: " + key + ", approx result: " + result);
-//			}
 		}
 		return result;
 	}

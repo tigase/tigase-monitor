@@ -1,86 +1,41 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2008 "Artur Hefczyc" <artur.hefczyc@tigase.org>
+ * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
- * If not, see http://www.gnu.org/licenses/.
- *
- * $Rev: 4 $
- * Last modified by $Author: kobit $
- * $Date: 2009-09-23 19:38:59 +0100 (Wed, 23 Sep 2009) $
  */
-
 package tigase.monitor;
 
-import static tigase.monitor.panel.DataChangeListener.BOSH_CONNECTIONS;
-import static tigase.monitor.panel.DataChangeListener.C2S_CONNECTIONS;
-import static tigase.monitor.panel.DataChangeListener.CL_TRAFFIC_R;
-import static tigase.monitor.panel.DataChangeListener.CL_TRAFFIC_S;
-import static tigase.monitor.panel.DataChangeListener.CPU_USAGE;
-import static tigase.monitor.panel.DataChangeListener.HEAP_USAGE;
-import static tigase.monitor.panel.DataChangeListener.NONHEAP_USAGE;
-import static tigase.monitor.panel.DataChangeListener.S2S_CONNECTIONS;
-import static tigase.monitor.panel.DataChangeListener.SM_TRAFFIC_R;
-import static tigase.monitor.panel.DataChangeListener.SM_TRAFFIC_S;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-
-import org.jfree.chart.ChartUtilities;
-import org.jfree.chart.JFreeChart;
 
 import tigase.monitor.conf.ChartConfig;
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
 //import tigase.monitor.panel.ConnectionsDistribution;
 import tigase.monitor.panel.DataChange;
-import tigase.monitor.panel.TigaseMonitor;
 import tigase.monitor.panel.TigaseMonitorLine;
-import tigase.monitor.panel.TigaseTextMonitor;
-import tigase.monitor.util.MFileChooser;
-import tigase.stats.JavaJMXProxyOpt;
 
 //~--- classes ----------------------------------------------------------------
 

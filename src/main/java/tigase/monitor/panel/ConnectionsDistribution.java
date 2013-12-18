@@ -1,25 +1,20 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2008 "Artur Hefczyc" <artur.hefczyc@tigase.org>
- * 
+ * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
+ *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
- * 
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
- * If not, see http://www.gnu.org/licenses/.
- * 
- * $Rev: 4 $
- * Last modified by $Author: kobit $
- * $Date: 2009-09-23 19:38:59 +0100 (Wed, 23 Sep 2009) $
  */
-
 package tigase.monitor.panel;
 
 import java.awt.BorderLayout;
@@ -28,7 +23,6 @@ import java.awt.Paint;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -38,7 +32,6 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.jfree.util.Rotation;
-
 import tigase.stats.JavaJMXProxyOpt;
 
 /**
@@ -56,21 +49,12 @@ public class ConnectionsDistribution extends TigaseMonitor {
 	public ConnectionsDistribution() {
 		super("Distribution", 10, 10);
 		data = new DefaultPieDataset();
-//		PiePlot plot = new PiePlot3D(data);
-//		((PiePlot3D)plot).setDarkerSides(false);
-//		JFreeChart chart3d = createChart(plot);
-//		charts.add(chart3d);
 		PiePlot plot = new PiePlot(data);
 		JFreeChart chart2d = createChart(plot);
 		charts.add(chart2d);
-//		ChartPanel chart3dPanel = new ChartPanel(chart3d);
 		ChartPanel chart2dPanel = new ChartPanel(chart2d);
-//		JTabbedPane tabs = new JTabbedPane();
-//		tabs.add("2d", chart2dPanel);
-//		tabs.add("3d", chart3dPanel);
 		panel = new JPanel(new BorderLayout());
 		panel.setBackground(Color.DARK_GRAY);
-//		panel.add(tabs);
 		panel.add(chart2dPanel);
 	}
 

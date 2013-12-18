@@ -1,28 +1,22 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2011 "Artur Hefczyc" <artur.hefczyc@tigase.org>
+ * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, version 3 of the License.
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
- * If not, see http://www.gnu.org/licenses/.
- *
- * $Rev: 2411 $
- * Last modified by $Author: kobit $
- * $Date: 2010-10-27 20:27:58 -0600 (Wed, 27 Oct 2010) $
- * 
  */
 package tigase.monitor.panel;
 
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -73,16 +67,6 @@ public class DataChange implements DataChangeListener {
 						switch (DataTypes.decodeTypeIdFromName(dataId)) {
 							case 'L': {
 								Long[] h = (Long[]) bean.getMetricHistory(dataId);
-//								if (monitor.getTitle().equals("XMPP Ping traffic")) {
-//									long last = h[0];
-//									long[] testA = new long[h.length];
-//									for (int i = 0; i < h.length; i++) {
-//										testA[i] = h[i] - last;
-//										last = h[i];
-//									}
-//									System.out.println("Ping delta: " + id + ": " + Arrays.toString(testA));
-//									System.out.println(dataId + ": " + id + ": " + Arrays.toString(h));
-//								}
 								if (h != null && h.length > 0) {
 									history = new double[h.length];
 									for (int i = 0; i < h.length; i++) {
@@ -155,11 +139,6 @@ public class DataChange implements DataChangeListener {
 				}
 				if (value != null) {
 					String ser_id = id + "-" + (idx++);
-					// if (monitor.getTitle().equals("Presence traffic") &&
-					// id.equals("green")) {
-					// System.out.println(monitor.getTitle() + ", " + ser_id + " value: "
-					// + value);
-					// }
 					if (countDelta) {
 						((TigaseMonitorLine) monitor).addValueDelta(ser_id, value);
 					} else {
@@ -170,27 +149,10 @@ public class DataChange implements DataChangeListener {
 		}
 	}
 
+	@Override
 	public void disconnected(String id) {
 		if (monitor != null) {
 			monitor.disconnected(id);
 		}
 	}
-
-	// public void connectedDelta(String id, JavaJMXProxyOpt bean, Long[] history)
-	// {
-	// if (history != null && history.length > 0) {
-	// double[] long_hist = new double[history.length];
-	// for (int i = 0; i < history.length; i++) {
-	// long_hist[i] = history[i] / monitor.getServerUpdaterate();
-	// }
-	// ((TigaseMonitorLine) monitor).loadHistory(id, long_hist, true);
-	// }
-	// monitor.connected(id, bean);
-	// }
-	//
-	// public void updateDelta(String id, long val) {
-	// double value = val / monitor.getUpdaterate();
-	// ((TigaseMonitorLine) monitor).addValueDelta(id, value);
-	// }
-
 }
