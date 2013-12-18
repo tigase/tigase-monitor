@@ -168,7 +168,7 @@
 									<mainClass>tigase.monitor.MonitorMain</mainClass>
 								</manifest>
 							</archive>
-							<!--<appendAssemblyId>false</appendAssemblyId>-->
+							<appendAssemblyId>false</appendAssemblyId>
 						</configuration>
 					</execution>
 				</executions>
