@@ -22,6 +22,7 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
@@ -32,7 +33,12 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.jfree.util.Rotation;
+
 import tigase.stats.JavaJMXProxyOpt;
+
+import static tigase.monitor.panel.DataChangeListener.BOSH_CONNECTIONS;
+import static tigase.monitor.panel.DataChangeListener.C2S_CONNECTIONS;
+import static tigase.monitor.panel.DataChangeListener.WS2S_CONNECTIONS;
 
 /**
  * Created: Sep 9, 2009 7:53:03 PM
@@ -109,7 +115,10 @@ public class ConnectionsDistribution extends TigaseMonitor {
 
 	@Override
 	public void update(String id, JavaJMXProxyOpt servBean) {
-		setValue(id, (Integer)servBean.getMetricData("c2s/Open connections[I]"));
+		Integer count = (Integer)servBean.getMetricData(C2S_CONNECTIONS);
+		count += (Integer)servBean.getMetricData(BOSH_CONNECTIONS);
+		count += (Integer)servBean.getMetricData(WS2S_CONNECTIONS);
+		setValue(id, count);
 	}
 
 	static class ChartTest extends ApplicationFrame {
