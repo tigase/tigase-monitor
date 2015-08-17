@@ -34,6 +34,7 @@ public interface DataChangeListener extends JMXProxyListenerOpt {
 	public static final String QUEUE_WAIT = "total/Total queues wait[I]";
 	public static final String QUEUE_OVERFLOW = "total/Total queues overflow[L]";
 	public static final String BOSH_CONNECTIONS = "bosh/Open connections[I]";
+	public static final String WS2S_CONNECTIONS = "ws2s/Open connections[I]";
 	public static final String C2S_CONNECTIONS = "c2s/Open connections[I]";
 	public static final String S2S_CONNECTIONS = "s2s/Open connections[I]";
 	public static final String CL_TRAFFIC_R = "cl-comp/Packets received[L]";

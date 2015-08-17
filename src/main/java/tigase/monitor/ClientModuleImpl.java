@@ -33,6 +33,7 @@ import java.awt.Dimension;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -45,6 +46,9 @@ import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
 import tigase.monitor.panel.ConnectionsDistribution;
 import tigase.monitor.panel.DataChange;
+
+import static tigase.monitor.panel.DataChangeListener.*;
+
 import tigase.monitor.panel.TigaseMonitorLine;
 import tigase.monitor.panel.TigaseTextMonitor;
 import tigase.stats.JavaJMXProxyOpt;
@@ -215,7 +219,7 @@ public class ClientModuleImpl {
 				new TigaseMonitorLine("Connections", "Connections per node", 10, true, false,
 						false, config.getTimeline(), config.getUpdaterate(),
 						config.getServerUpdaterate());
-		new DataChange(conns, false, true, C2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS);
+		new DataChange(conns, false, true, C2S_CONNECTIONS, WS2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS);
 
 		MonitorMain.monitors.add(conns);
 		dim = new Dimension(width, height);
