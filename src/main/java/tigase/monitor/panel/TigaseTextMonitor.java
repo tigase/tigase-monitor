@@ -44,7 +44,7 @@ import static tigase.monitor.panel.DataChangeListener.*;
 
 /**
  * Created: Sep 12, 2009 11:52:57 AM
- * 
+ *
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 6 $
  */
@@ -55,6 +55,8 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	JPopupMenu contextMenu = null;
 	private JLabel cpu = null;
 	private JLabel mem = null;
+	private JLabel memMax = null;
+	private JLabel memUsed = null;
 	private JLabel smPackets = null;
 	private JLabel queues = null;
 	private JLabel conns = null;
@@ -63,7 +65,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	private JLabel clCache = null;
 	private JTextArea details = null;
 	private JPanel panel = null;
-	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, SM_TRAFFIC_R,
+	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_MAX, HEAP_USED, SM_TRAFFIC_R,
 			SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R,
 			CL_TRAFFIC_S, CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT };
 	private long old_sm_traffic = 0;
@@ -102,7 +104,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		panel.setComponentPopupMenu(contextMenu);
 
 		Color labelCol = Color.GRAY;
-		JPanel mainStats = new JPanel(new GridLayout(4, 2, 20, 5));
+		JPanel mainStats = new JPanel(new GridLayout(5, 2, 20, 5));
 		mainStats.setBackground(new Color(0.15f, 0.15f, 0.15f));
 		mainStats.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
@@ -117,6 +119,16 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		mem.setFont(myLabelfont);
 		mem.setForeground(labelCol);
 		mainStats.add(mem);
+
+		memMax = new JLabel("Mem (max): -");
+		memMax.setFont(myLabelfont);
+		memMax.setForeground(labelCol);
+		mainStats.add(memMax);
+
+		memUsed = new JLabel("Mem (used): -");
+        memUsed.setFont(myLabelfont);
+        memUsed.setForeground(labelCol);
+		mainStats.add(memUsed);
 
 		smPackets = new JLabel("SM Packets: - / -");
 		smPackets.setFont(myLabelfont);
@@ -225,6 +237,8 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			} else {
 				clPackets.setForeground(labelCol);
 			}
+
+
 			float mem_usage = (Float) servBean.getMetricData(HEAP_USAGE);
 			float nh_usage = (Float) servBean.getMetricData(NONHEAP_USAGE);
 			s =
@@ -240,6 +254,18 @@ public class TigaseTextMonitor extends TigaseMonitor {
 					mem.setForeground(labelCol);
 				}
 			}
+
+
+            String mem_heap_max = (String) servBean.getMetricData(HEAP_MAX);
+            s = MessageFormat.format("Mem (max): {0}", mem_heap_max);
+            memMax.setText(s);
+            memMax.setForeground(labelCol);
+
+            String mem_heap_used = (String) servBean.getMetricData(HEAP_USED);
+            s = MessageFormat.format("Mem (used): {0}", mem_heap_used);
+            memUsed.setText(s);
+            memUsed.setForeground(labelCol);
+
 			int queue_wait = (Integer) servBean.getMetricData(QUEUE_WAIT);
 			s = MessageFormat.format("Queues: {0,number,#}", queue_wait);
 			queues.setText(s);

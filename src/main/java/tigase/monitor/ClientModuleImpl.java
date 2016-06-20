@@ -198,7 +198,7 @@ public class ClientModuleImpl {
 		row1.add(cpu.getPanel());
 
 		TigaseMonitorLine mem =
-				new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, false, true,
+				new TigaseMonitorLine("Memory Usage (Old Gen)", "MEM %", 100, false, false, true,
 						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
 		new DataChange(mem, false, true, HEAP_USAGE, NONHEAP_USAGE);
 

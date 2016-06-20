@@ -28,6 +28,8 @@ public interface DataChangeListener extends JMXProxyListenerOpt {
 	public static final String CPU_USAGE = "message-router/CPU usage [%][F]";
 	public static final String HEAP_USAGE = "message-router/HEAP usage [%][F]";
 	public static final String NONHEAP_USAGE = "message-router/NONHEAP usage [%][F]";
+	public static final String HEAP_MAX = "message-router/Max Heap mem[S]";
+	public static final String HEAP_USED = "message-router/Used Heap[S]";
 	public static final String SM_TRAFFIC_R = "sess-man/Packets received[L]";
 	public static final String SM_TRAFFIC_S = "sess-man/Packets sent[L]";
 	public static final String SM_QUEUE_WAIT = "sess-man/Total queues wait[I]";
