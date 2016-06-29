@@ -39,17 +39,6 @@ public class NodeConfig {
 
 	//~--- constructors ---------------------------------------------------------
 
-	/**
-	 * Constructs ...
-	 *
-	 *
-	 * @param description
-	 * @param colour
-	 * @param hostname
-	 * @param port
-	 * @param userName
-	 * @param password
-	 */
 	public NodeConfig(String description, String colour, String hostname, int port,
 			String userName, String password) {
 		this.description = description;
@@ -68,12 +57,6 @@ public class NodeConfig {
 
 	//~--- get methods ----------------------------------------------------------
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public Color getColor() {
 		Color myFill = Color.MAGENTA;
 
@@ -124,82 +107,35 @@ public class NodeConfig {
 		return myFill;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public String getColorStr() {
 		return color;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public String getDescription() {
 		return description;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public String getHostname() {
 		return hostname;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public String getPassword() {
 		return password;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public int getPort() {
 		return port;
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	public String getUserName() {
 		return userName;
 	}
 
 	//~--- methods --------------------------------------------------------------
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @return
-	 */
 	@Override
 	public String toString() {
 		return description + " - " + hostname;
 	}
 }
 
-
-//~ Formatted in Sun Code Convention
-
-
-//~ Formatted by Jindent --- http://www.jindent.com

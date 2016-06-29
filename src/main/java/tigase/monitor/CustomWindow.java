@@ -33,9 +33,6 @@ import tigase.monitor.conf.Configuration;
  */
 public class CustomWindow extends JFrame {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private CustomModuleImpl moduleImpl = null;
 	private MonitorMain parent = null;

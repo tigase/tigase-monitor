@@ -88,14 +88,6 @@ public class Configuration {
 	private String mainWindowTitle = MAIN_WINDOW_TIT_DEF;
 	private boolean displayAlarm = true;
 
-	/**
-	 * Constructs ...
-	 * 
-	 * 
-	 * @param filename
-	 * 
-	 * @throws IOException
-	 */
 	public Configuration(String filename) throws IOException {
 		props = new Properties();
 		props.load(new FileInputStream(filename));
@@ -193,52 +185,22 @@ public class Configuration {
 		return errorTh;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public int getHeight() {
 		return height;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public boolean getLoadHistory() {
 		return loadHistory;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public List<NodeConfig> getNodeConfigs() {
 		return nodes;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public int getTimeline() {
 		return timeline;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public int getUpdaterate() {
 		return updaterate;
 	}
@@ -247,33 +209,18 @@ public class Configuration {
 		return server_updaterate;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public int getWidth() {
 		return width;
 	}
 
-	/**
-	 * @return
-	 */
 	public String getAlarmFileName() {
 		return alarmFileName;
 	}
 
-	/**
-	 * @return
-	 */
 	public boolean customWindow() {
 		return customWindow;
 	}
 
-	/**
-	 * @return
-	 */
 	public String getCustomTitle() {
 		return customWindowTitle;
 	}
@@ -282,10 +229,6 @@ public class Configuration {
 		return mainWindowTitle;
 	}
 
-	/**
-	 * @param i
-	 * @return
-	 */
 	public ChartConfig getChartConfig(int i) {
 		ChartConfig conf = customCharts.get(i);
 		if (conf == null) {
@@ -294,14 +237,7 @@ public class Configuration {
 		return conf;
 	}
 
-	/**
-	 * @return
-	 */
 	public boolean displayAlarm() {
 		return displayAlarm;
 	}
 }
-
-// ~ Formatted in Sun Code Convention
-
-// ~ Formatted by Jindent --- http://www.jindent.com

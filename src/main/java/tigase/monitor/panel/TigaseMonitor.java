@@ -96,10 +96,6 @@ public abstract class TigaseMonitor {
 		return historyLoaded.get(id) != null;
 	}
 
-	/**
-	 * @param id
-	 * @param bean
-	 */
 	public void update(String id, JavaJMXProxyOpt bean) {
 	}
 }

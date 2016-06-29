@@ -78,20 +78,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	private Map<String, Double> oldVal = new LinkedHashMap<String, Double>(4);
 	private Map<String, Boolean> first = new LinkedHashMap<String, Boolean>(4);
 
-	/**
-	 * Constructs ...
-	 * 
-	 *
-	 * @param title
-	 * @param yTitle
-	 * @param yAxisMax
-	 * @param countTotals
-	 * @param countPerSec
-	 * @param approximate
-	 * @param timeline
-	 * @param updaterate
-	 * @param serverUpdaterare
-	 */
 	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
 			boolean countTotals, boolean countPerSec, boolean approximate, int timeline,
 			int updaterate, int serverUpdaterare) {
@@ -126,42 +112,18 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public boolean countTotals() {
 		return countTotals;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public double getYAxisMax() {
 		return yAxisMax;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public String getYTitle() {
 		return yTitle;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param key
-	 */
 	public void addSeries(String key, Paint color) {
 		DataChange dc = (DataChange) getDataChangeListener();
 		Paint c = color;
@@ -179,13 +141,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param key
-	 * @param val
-	 */
 	public synchronized void addValue(String key, double val) {
 		// If the connection to the server is broken we can get zero's here
 		// but we do not want to show zeros to the end-user, we better wait for
@@ -232,33 +187,14 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		}
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public List<JFreeChart> getCharts() {
 		return charts;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public JPanel getPanel() {
 		return panel;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param id
-	 * @param history
-	 */
 	public synchronized void loadHistory(String id, Float[] history) {
 		double[] vals = new double[history.length];
 		for (int i = 0; i < history.length; i++) {
@@ -283,13 +219,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		loadHistory(id, vals, false);
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param id
-	 * @param history
-	 */
 	public synchronized void loadHistory(String id, double[] history, boolean calcDelta) {
 		super.loadHistory(id, history, calcDelta);
 		TimeSeries series = series_map.get(id);
@@ -366,13 +295,6 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		return result;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param key
-	 * @param color
-	 */
 	public void setColor(String key, Paint color) {
 		TimeSeries series = series_map.get(key);
 

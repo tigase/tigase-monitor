@@ -135,10 +135,6 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 		return menuBar;
 	}
 
-	/**
-	 * @param args
-	 *          the command line arguments
-	 */
 	public static void main(String[] args) {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		String propFile = PROP_FILENAME_DEF;
@@ -364,12 +360,6 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 		}
 	}
 
-	/**
-	 * Method description
-	 *
-	 *
-	 * @param e
-	 */
 	public void actionPerformed(ActionEvent e) {
 		String command = e.getActionCommand();
 
@@ -455,10 +445,6 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 			this.interval = interval;
 		}
 
-		/**
-		 * Method description
-		 *
-		 */
 		@Override
 		public void run() {
 			if (delay > 0) {

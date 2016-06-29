@@ -39,10 +39,6 @@ public class ChartConfig {
 	private Properties props = new Properties();
 	private ArrayList<String> series = new ArrayList<String>();
 
-	/**
-	 * @param prop_key
-	 * @param property
-	 */
 	public void addProperty(String prop_key, String property) {
 		props.put(prop_key, property);
 		if(prop_key.startsWith(CUSTOM_CHART_SERIES_KEY)) {
@@ -63,9 +59,6 @@ public class ChartConfig {
 		return Integer.parseInt(val_str);
 	}
 
-	/**
-	 * @return
-	 */
 	public boolean countTotals() {
 		String val_str = props.getProperty(CUSTOM_CHART_CNT_TOTALS_KEY, CUSTOM_CHART_BOOL_DEF);
 		return Boolean.parseBoolean(val_str);
@@ -80,9 +73,6 @@ public class ChartConfig {
 		return series.toArray(new String[series.size()]);
 	}
 
-	/**
-	 * @return
-	 */
 	public boolean countPerSec() {
 		String val_str = props.getProperty(CUSTOM_CHART_CNT_PERSEC_KEY, CUSTOM_CHART_BOOL_DEF);
 		return Boolean.parseBoolean(val_str);

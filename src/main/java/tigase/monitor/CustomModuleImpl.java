@@ -58,52 +58,21 @@ public class CustomModuleImpl {
 	private float row3_height_factor = 0.40f;
 	private float row3_width_factor = 0.2f;
 
-	/**
-	 * Constructs ...
-	 * 
-	 */
 	public CustomModuleImpl() {
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param menuBar
-	 * 
-	 * @return
-	 */
 	public JMenu getJMenu(JMenuBar menuBar) {
 		return menu;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public Map<String, JPanel> getJPanels() {
 		return panels;
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @return
-	 */
 	public Dimension getPreferredSize() {
 		return new Dimension(config.getWidth(), config.getHeight());
 	}
 
-	/**
-	 * Method description
-	 * 
-	 * 
-	 * @param configFile
-	 * @param mainFrame
-	 */
 	public void init(Configuration conf, JFrame mainFrame) {
 		this.config = conf;
 		this.mainFrame = mainFrame;
