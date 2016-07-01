@@ -17,57 +17,31 @@
  */
 package tigase.monitor;
 
-import static tigase.monitor.panel.DataChangeListener.CPU_USAGE;
-import static tigase.monitor.panel.DataChangeListener.HEAP_USAGE;
-import static tigase.monitor.panel.DataChangeListener.NONHEAP_USAGE;
-
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.Line;
-import javax.sound.sampled.LineEvent;
-import javax.sound.sampled.LineListener;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.StandardChartTheme;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
-
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
 import tigase.monitor.panel.DataChange;
 import tigase.monitor.panel.TigaseMonitor;
 import tigase.monitor.util.MFileChooser;
 import tigase.stats.JavaJMXProxyOpt;
+
+import javax.sound.sampled.*;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.List;
+import java.util.Timer;
+
+import static tigase.monitor.panel.DataChangeListener.*;
 
 /**
  *
@@ -85,8 +59,8 @@ public class MonitorMain extends ApplicationFrame implements ActionListener {
 
 	private static final String PROP_FILENAME_KEY = "--init";
 	private static Configuration config = null;
-	private static List<JavaJMXProxyOpt> proxies = new LinkedList<JavaJMXProxyOpt>();
-	protected static List<TigaseMonitor> monitors = new LinkedList<TigaseMonitor>();
+	private static List<JavaJMXProxyOpt> proxies = new LinkedList<>();
+	protected static List<TigaseMonitor> monitors = new LinkedList<>();
 	private static DataChange notifier = null;
 	private static Timer timer = new Timer("Statistics updater", true);
 	private static DialogDisplay dialogDisplay = null;

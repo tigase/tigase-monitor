@@ -18,24 +18,19 @@
 package tigase.monitor;
 
 
-import java.awt.Color;
-import java.awt.Dimension;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JPanel;
-
 import tigase.monitor.conf.ChartConfig;
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
-//import tigase.monitor.panel.ConnectionsDistribution;
 import tigase.monitor.panel.DataChange;
 import tigase.monitor.panel.TigaseMonitorLine;
+
+import javax.swing.*;
+import java.awt.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+//import tigase.monitor.panel.ConnectionsDistribution;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -55,8 +50,6 @@ public class CustomModuleImpl {
 	private float row1_width_factor = 0.5f;
 	private float row2_height_factor = 0.30f;
 	private float row2_width_factor = 0.33f;
-	private float row3_height_factor = 0.40f;
-	private float row3_width_factor = 0.2f;
 
 	public CustomModuleImpl() {
 	}
@@ -90,109 +83,63 @@ public class CustomModuleImpl {
 		liveView.setBackground(Color.DARK_GRAY);
 		liveView.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
-		JPanel row1 = new JPanel(null);
+		JPanel row1 = addRow(liveView);
 
-		row1.setLayout(new BoxLayout(row1, BoxLayout.LINE_AXIS));
-		row1.setBackground(Color.DARK_GRAY);
-		liveView.add(row1);
-
-		int width_distr = Math.round(config.getHeight() * row1_height_factor);
+		int width = Math.round(config.getWidth() * row1_width_factor - 5);
 		int height = Math.round(config.getHeight() * row1_height_factor);
-		Dimension dim = new Dimension(width_distr, height);
 
-		ChartConfig conf = config.getChartConfig(1);
+		TigaseMonitorLine custom1 = addChart(config, height, width, row1, 1);
 
-		TigaseMonitorLine cpu =
-				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), conf.countPerSec(), conf.approximate(),
-						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-		new DataChange(cpu, conf.countDelta(), true, conf.getSeries());
-		MonitorMain.monitors.add(cpu);
+		TigaseMonitorLine custom2 = addChart(config, height, width, row1, 2);
 
-		int width = Math.round((config.getWidth() - width_distr) * row1_width_factor - 10);
+		JPanel row2 = addRow(liveView);
 
-		height = Math.round(config.getHeight() * row1_height_factor);
-		dim = new Dimension(width, height);
-		cpu.getPanel().setPreferredSize(dim);
-		row1.add(cpu.getPanel());
-
-		conf = config.getChartConfig(2);
-		TigaseMonitorLine mem =
-				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), conf.countPerSec(), conf.approximate(),
-						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-		new DataChange(mem, conf.countDelta(), true, conf.getSeries());
-
-		MonitorMain.monitors.add(mem);
-		dim = new Dimension(width, height);
-		mem.getPanel().setPreferredSize(dim);
-		row1.add(mem.getPanel());
 		width = Math.round(config.getWidth() * row2_width_factor - 5);
 		height = Math.round(config.getHeight() * row2_height_factor);
 
+		TigaseMonitorLine custom3 = addChart(config, height, width, row2, 3);
+
+		TigaseMonitorLine custom4 = addChart(config, height, width, row2, 4);
+
+		TigaseMonitorLine custom5 = addChart(config, height, width, row2, 5);
+
+		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
+
+		for (NodeConfig nodeConfig : nodeConfigs) {
+			custom1.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom2.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom4.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom5.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom3.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+		}
+
+		return liveView;
+	}
+
+	private JPanel addRow(JPanel liveView) {
 		JPanel row2 = new JPanel(null);
 
 		row2.setLayout(new BoxLayout(row2, BoxLayout.LINE_AXIS));
 		row2.setBackground(Color.DARK_GRAY);
 		liveView.add(row2);
+		return row2;
+	}
 
-		conf = config.getChartConfig(3);
-		TigaseMonitorLine conns =
+	private TigaseMonitorLine addChart(Configuration config, int height, int width, JPanel row2, int id) {
+		ChartConfig conf;
+		Dimension dim;
+		conf = config.getChartConfig(id);
+		TigaseMonitorLine custom4 =
 				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
 						conf.countTotals(), conf.countPerSec(), conf.approximate(),
 						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-		new DataChange(conns, conf.countDelta(), true, conf.getSeries());
+		new DataChange(custom4, conf.countDelta(), true, conf.getSeries());
 
-		MonitorMain.monitors.add(conns);
+		MonitorMain.monitors.add(custom4);
 		dim = new Dimension(width, height);
-		conns.getPanel().setPreferredSize(dim);
-		row2.add(conns.getPanel());
-
-		conf = config.getChartConfig(4);
-		TigaseMonitorLine sm =
-				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), conf.countPerSec(), conf.approximate(),
-						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-		new DataChange(sm, conf.countDelta(), true, conf.getSeries());
-
-		MonitorMain.monitors.add(sm);
-		dim = new Dimension(width, height);
-		sm.getPanel().setPreferredSize(dim);
-		row2.add(sm.getPanel());
-
-		conf = config.getChartConfig(5);
-		TigaseMonitorLine cl =
-				new TigaseMonitorLine(conf.getXTitle(), conf.getYTitle(), conf.getMaxY(),
-						conf.countTotals(), conf.countPerSec(), conf.approximate(),
-						config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-		new DataChange(cl, conf.countDelta(), true, conf.getSeries());
-
-		MonitorMain.monitors.add(cl);
-		dim = new Dimension(width, height);
-		cl.getPanel().setPreferredSize(dim);
-		row2.add(cl.getPanel());
-
-		JPanel row3 = new JPanel(null);
-
-		row3.setLayout(new BoxLayout(row3, BoxLayout.LINE_AXIS));
-		row3.setBackground(Color.DARK_GRAY);
-		liveView.add(row3);
-		width = Math.round(config.getWidth() * row3_width_factor - 5);
-		height = Math.round(config.getHeight() * row3_height_factor - 100);
-
-		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
-
-		for (NodeConfig nodeConfig : nodeConfigs) {
-			// distr.setValue(nodeConfig.getDescription(), 0);
-			// distr.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-			cpu.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-			mem.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-			sm.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-			cl.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-			conns.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-		}
-
-		return liveView;
+		custom4.getPanel().setPreferredSize(dim);
+		row2.add(custom4.getPanel());
+		return custom4;
 	}
 
 }
