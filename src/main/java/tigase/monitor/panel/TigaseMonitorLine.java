@@ -31,19 +31,11 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Paint;
-
+import javax.swing.*;
+import java.awt.*;
 import java.text.SimpleDateFormat;
-
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-
-import javax.swing.JPanel;
 
 /**
  * Created: Sep 9, 2009 11:47:00 PM

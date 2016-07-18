@@ -17,15 +17,13 @@
  */
 package tigase.monitor.panel;
 
+import org.jfree.chart.JFreeChart;
+import tigase.stats.JavaJMXProxyOpt;
+
+import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import javax.swing.JPanel;
-
-import org.jfree.chart.JFreeChart;
-
-import tigase.stats.JavaJMXProxyOpt;
 
 /**
  * Created: Sep 9, 2009 10:01:51 PM
