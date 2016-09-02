@@ -1,6 +1,6 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
+ * Copyright (C) 2004-2016 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
+ * If not, see http://www.gnu.org/licenses/.
  */
 package tigase.monitor.conf;
 
@@ -65,13 +66,18 @@ public class Configuration {
 	private static final String CUSTOM_CHART_KEY = "custom-window.chart.";
 	private static final String MAIN_WINDOW_TIT_KEY = "main-window.title";
 	private static final String MAIN_WINDOW_TIT_DEF = "Tigase Monitor";
+	private static final String MEMORY_TAB_KEY = "memory-tab";
+	private static final String MEMORY_TAB_DEF = "true";
+	private static final String MEMORY_UNIT_KEY = MEMORY_TAB_KEY + "." + "memory-display-unit";
+	private static final String MEMORY_UNIT_VAL = "KB";
+	private static final String APPROXIMATE_TRAFFIC_KEY = "approximate-traffic";
+	private static final String APPROXIMATE_TRAFFIC_DEF = "false";
 	private static final String DISPLAY_ALARM_KEY = "display-alarm";
 	private static final String DISPLAY_ALARM_DEF = "true";
 
 	private int height = 1100;
 	private List<NodeConfig> nodes = null;
-	private Map<Integer, ChartConfig> customCharts =
-			new LinkedHashMap<Integer, ChartConfig>();
+	private Map<Integer, ChartConfig> customCharts = new LinkedHashMap<>();
 	private Properties props = null;
 	private int timeline = 24 * 3600;
 	private int updaterate = 10;
@@ -84,9 +90,33 @@ public class Configuration {
 	private float errorTh = 80f;
 	private String alarmFileName = ALARM_FILE_NAME_DEF;
 	private boolean customWindow = false;
+	private boolean approximateTraffic = false;
+
+
+	public enum UNITS {
+		KB(1),
+		MB(1024),
+		GB(1024 * 1024);
+
+		private int factor = 1;
+		UNITS(int factor) {
+			this.factor = factor;
+		}
+
+		public int getFactor() {
+			return factor;
+		}
+	}
+
+	private boolean memoryTab = false;
+	private UNITS memoryUnit = UNITS.KB;
 	private String customWindowTitle = CUSTOM_WINDOW_TIT_DEF;
 	private String mainWindowTitle = MAIN_WINDOW_TIT_DEF;
 	private boolean displayAlarm = true;
+
+	public boolean isApproximateTraffic() {
+		return approximateTraffic;
+	}
 
 	public Configuration(String filename) throws IOException {
 		props = new Properties();
@@ -155,6 +185,15 @@ public class Configuration {
 		alarmFileName = props.getProperty(ALARM_FILE_NAME_KEY, ALARM_FILE_NAME_DEF);
 		customWindow =
 				Boolean.parseBoolean(props.getProperty(CUSTOM_WINDOW_KEY, CUSTOM_WINDOW_DEF));
+		memoryTab = Boolean.parseBoolean(props.getProperty(MEMORY_TAB_KEY, MEMORY_UNIT_VAL));
+
+		try {
+			memoryUnit = UNITS.valueOf(props.getProperty(MEMORY_UNIT_KEY, MEMORY_UNIT_VAL));
+		} catch (IllegalArgumentException e) {
+			memoryUnit = UNITS.KB;
+			System.out.println("Wrong memory UNIT, using default: " + memoryUnit);
+		}
+		approximateTraffic = Boolean.parseBoolean(props.getProperty(APPROXIMATE_TRAFFIC_KEY, APPROXIMATE_TRAFFIC_DEF));
 		customWindowTitle = props.getProperty(CUSTOM_WINDOW_TIT_KEY, CUSTOM_WINDOW_TIT_DEF);
 		mainWindowTitle = props.getProperty(MAIN_WINDOW_TIT_KEY, MAIN_WINDOW_TIT_DEF);
 		displayAlarm =
@@ -229,6 +268,11 @@ public class Configuration {
 		return mainWindowTitle;
 	}
 
+	public UNITS getMemoryUnit() {
+		return memoryUnit;
+	}
+
+
 	public ChartConfig getChartConfig(int i) {
 		ChartConfig conf = customCharts.get(i);
 		if (conf == null) {
@@ -236,6 +280,11 @@ public class Configuration {
 		}
 		return conf;
 	}
+
+	public boolean isMemoryTabEnabled() {
+		return memoryTab;
+	}
+
 
 	public boolean displayAlarm() {
 		return displayAlarm;

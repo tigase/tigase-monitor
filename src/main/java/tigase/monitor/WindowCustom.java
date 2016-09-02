@@ -16,14 +16,39 @@
  * along with this program. Look for COPYING file in the top folder.
  * If not, see http://www.gnu.org/licenses/.
  */
-package tigase.monitor.util;
+package tigase.monitor;
+
+import java.awt.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+
+import tigase.monitor.conf.Configuration;
+import tigase.monitor.panel.TigasePanel;
+import tigase.monitor.panel.TigasePanelCustom;
 
 /**
- * Created: Sep 10, 2009 8:08:45 PM
- *
- * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
- * @version $Rev: 4 $
+ * @author Artur Hefczyc Created Jun 9, 2011
  */
-public class FileUtils {
+public class WindowCustom extends TigaseWindowAbstract {
+
+    private static final long serialVersionUID = 1L;
+    private MonitorMain parent = null;
+
+    public WindowCustom(Configuration config, MonitorMain parent) {
+        super(config,parent);
+
+        TigasePanel panel = new TigasePanelCustom(config, this);
+        panels.put("Custom Panel", panel);
+
+        init();
+
+    }
+
+
 
 }

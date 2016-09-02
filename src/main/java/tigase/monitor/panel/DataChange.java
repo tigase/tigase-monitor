@@ -1,6 +1,6 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
+ * Copyright (C) 2004-2016 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,16 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
+ * If not, see http://www.gnu.org/licenses/.
  */
 package tigase.monitor.panel;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import tigase.stats.JavaJMXProxyOpt;
 import tigase.util.DataTypes;
+
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 /**
  * @author Artur Hefczyc Created May 28, 2011
@@ -37,9 +39,9 @@ public class DataChange implements DataChangeListener {
 	}
 
 	protected TigaseMonitor monitor = null;
-	private String[] dataIds = null;
-	private boolean countDelta = false;
-	private boolean loadHistory = true;
+	protected List<String> dataIds = new CopyOnWriteArrayList<>();
+	protected boolean countDelta = false;
+	protected boolean loadHistory = true;
 
 	public DataChange(TigaseMonitor monitor, boolean countDelta, boolean loadHistory,
 			String... dataIds) {
@@ -49,11 +51,15 @@ public class DataChange implements DataChangeListener {
 		if (this.monitor != null) {
 			this.monitor.setDataChangeListener(this);
 		}
-		this.dataIds = dataIds;
+		if (dataIds != null) {
+			this.dataIds.addAll(Arrays.asList(dataIds));
+		}
 	}
 
 	public String[] getDataIds() {
-		return dataIds;
+		String[] array = new String[ dataIds.size() ];
+		dataIds.toArray(array);
+		return array;
 	}
 
 	public void connected(String id, JavaJMXProxyOpt bean) {

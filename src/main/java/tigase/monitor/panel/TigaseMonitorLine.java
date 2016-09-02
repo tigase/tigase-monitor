@@ -1,6 +1,6 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
+ * Copyright (C) 2004-2016 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,7 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
+ * If not, see http://www.gnu.org/licenses/.
  */
 package tigase.monitor.panel;
 
@@ -69,6 +70,8 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	private Map<String, Double> oldVal = new LinkedHashMap<String, Double>(4);
 	private Map<String, Boolean> first = new LinkedHashMap<String, Boolean>(4);
+
+
 
 	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
 			boolean countTotals, boolean countPerSec, boolean approximate, int timeline,
@@ -272,6 +275,11 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		return result;
 	}
 
+	protected int getDivisionFactor() {
+		return 1;
+	}
+
+
 	private double calcApproximate(String key, double val) {
 		double result = val;
 		double[] lastRes = lastResults.get(key);
@@ -306,6 +314,8 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 	private void addValue(String key, long time, double val, boolean notify,
 			TimeSeries series) {
+		val = val / getDivisionFactor();
+
 		RegularTimePeriod rtp = new Second(new Date(time));
 		Number n = series.getValue(rtp);
 

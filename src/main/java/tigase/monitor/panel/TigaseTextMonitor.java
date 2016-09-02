@@ -1,6 +1,6 @@
 /*
  * Tigase Jabber/XMPP Server
- * Copyright (C) 2004-2013 "Tigase, Inc." <office@tigase.com>
+ * Copyright (C) 2004-2016 "Tigase, Inc." <office@tigase.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -14,31 +14,23 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. Look for COPYING file in the top folder.
+ * If not, see http://www.gnu.org/licenses/.
  */
 package tigase.monitor.panel;
 
-import java.awt.Color;
+import org.jfree.chart.JFreeChart;
+import tigase.monitor.conf.NodeConfig;
+import tigase.stats.JavaJMXProxyOpt;
 
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.MessageFormat;
 import java.util.List;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JTextArea;
-import javax.swing.border.Border;
-import javax.swing.border.EtchedBorder;
-import javax.swing.border.TitledBorder;
-import org.jfree.chart.JFreeChart;
-import tigase.monitor.conf.NodeConfig;
-import tigase.stats.JavaJMXProxyOpt;
 
 import static tigase.monitor.panel.DataChangeListener.*;
 
@@ -55,6 +47,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	JPopupMenu contextMenu = null;
 	private JLabel cpu = null;
 	private JLabel mem = null;
+	private JLabel memGenName = null;
 	private JLabel memMax = null;
 	private JLabel memUsed = null;
 	private JLabel smPackets = null;
@@ -65,7 +58,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 	private JLabel clCache = null;
 	private JTextArea details = null;
 	private JPanel panel = null;
-	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_MAX, HEAP_USED, SM_TRAFFIC_R,
+	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_MAX, HEAP_REGION_USED, SM_TRAFFIC_R,
 			SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R,
 			CL_TRAFFIC_S, CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT };
 	private long old_sm_traffic = 0;
@@ -104,7 +97,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		panel.setComponentPopupMenu(contextMenu);
 
 		Color labelCol = Color.GRAY;
-		JPanel mainStats = new JPanel(new GridLayout(5, 2, 20, 5));
+		JPanel mainStats = new JPanel(new GridLayout(6, 2, 5, 5));
 		mainStats.setBackground(new Color(0.15f, 0.15f, 0.15f));
 		mainStats.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
@@ -119,6 +112,16 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		mem.setFont(myLabelfont);
 		mem.setForeground(labelCol);
 		mainStats.add(mem);
+
+		JLabel l = new JLabel("-");
+		l.setFont(myLabelfont);
+		l.setForeground(labelCol);
+		mainStats.add(l);
+
+		memGenName = new JLabel("Region: -");
+		memGenName.setFont(myLabelfont);
+		memGenName.setForeground(labelCol);
+		mainStats.add(memGenName);
 
 		memMax = new JLabel("Mem (max): -");
 		memMax.setFont(myLabelfont);
@@ -241,9 +244,6 @@ public class TigaseTextMonitor extends TigaseMonitor {
 
 			float mem_usage = (Float) servBean.getMetricData(HEAP_USAGE);
 			float nh_usage = (Float) servBean.getMetricData(NONHEAP_USAGE);
-			s =
-					MessageFormat.format("Mem: {0,number,#.#}% / {1,number,#.#}%", mem_usage,
-							nh_usage);
 			mem.setText(s);
 			if (mem_usage > 60f || nh_usage > 60) {
 				mem.setForeground(Color.red);
@@ -256,12 +256,18 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			}
 
 
-            String mem_heap_max = (String) servBean.getMetricData(HEAP_MAX);
-            s = MessageFormat.format("Mem (max): {0}", mem_heap_max);
+			String region = (String)servBean.getMetricData(HEAP_REGION_NAME);
+			s = MessageFormat.format("Region: {0}", region);
+			memGenName.setText(s);
+			memGenName.setForeground(labelCol);
+
+
+			String mem_heap_max = (String) servBean.getMetricData(HEAP_REGION_MAX);
+			s = MessageFormat.format("Mem (max): {0}", mem_heap_max);
             memMax.setText(s);
             memMax.setForeground(labelCol);
 
-            String mem_heap_used = (String) servBean.getMetricData(HEAP_USED);
+            String mem_heap_used = (String) servBean.getMetricData(HEAP_REGION_USED);
             s = MessageFormat.format("Mem (used): {0}", mem_heap_used);
             memUsed.setText(s);
             memUsed.setForeground(labelCol);

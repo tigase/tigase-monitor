@@ -1,2 +1,4 @@
 dists
 libs
+lib
+*.properties
