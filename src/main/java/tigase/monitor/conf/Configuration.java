@@ -20,20 +20,16 @@ package tigase.monitor.conf;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Created: Sep 9, 2009 6:24:08 PM
- * 
+ *
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 6 $
  */
 public class Configuration {
+
 	private static final String HEIGHT_DEF = "1100";
 	private static final String HEIGHT_KEY = "height";
 	private static final String JMX_PASSWORD_DEF = "admin_pass";
@@ -42,8 +38,8 @@ public class Configuration {
 	private static final String JMX_USER_NAME_KEY = "jmx-user";
 	private static final String LOAD_HISTORY_DEF = "true";
 	private static final String LOAD_HISTORY_KEY = "load-history";
-	private static final String NODES_DEF = "pink:pink.tigase.org,green:green.tigase.org,"
-			+ "blue:blue.tigase.org,white:black1.tigase.org,yellow:black2.tigase.org";
+	private static final String NODES_DEF = "pink:pink.tigase.org,green:green.tigase.org," +
+			"blue:blue.tigase.org,white:black1.tigase.org,yellow:black2.tigase.org";
 	private static final String NODES_KEY = "nodes";
 	private static final String TIMELINE_DEF = "8640";
 	private static final String TIMELINE_KEY = "timeline";
@@ -75,30 +71,13 @@ public class Configuration {
 	private static final String DISPLAY_ALARM_KEY = "display-alarm";
 	private static final String DISPLAY_ALARM_DEF = "true";
 
-	private int height = 1100;
-	private List<NodeConfig> nodes = null;
-	private Map<Integer, ChartConfig> customCharts = new LinkedHashMap<>();
-	private Properties props = null;
-	private int timeline = 24 * 3600;
-	private int updaterate = 10;
-	private int server_updaterate = 10;
-	private String userName = "admin";
-	private String userPass = "admin_pass";
-	private int width = 1850;
-	private boolean loadHistory = true;
-	private float warningTh = 50f;
-	private float errorTh = 80f;
-	private String alarmFileName = ALARM_FILE_NAME_DEF;
-	private boolean customWindow = false;
-	private boolean approximateTraffic = false;
-
-
 	public enum UNITS {
 		KB(1),
 		MB(1024),
 		GB(1024 * 1024);
 
 		private int factor = 1;
+
 		UNITS(int factor) {
 			this.factor = factor;
 		}
@@ -107,24 +86,34 @@ public class Configuration {
 			return factor;
 		}
 	}
-
+	private String alarmFileName = ALARM_FILE_NAME_DEF;
+	private boolean approximateTraffic = false;
+	private Map<Integer, ChartConfig> customCharts = new LinkedHashMap<>();
+	private boolean customWindow = false;
+	private String customWindowTitle = CUSTOM_WINDOW_TIT_DEF;
+	private boolean displayAlarm = true;
+	private float errorTh = 80f;
+	private int height = 1100;
+	private boolean loadHistory = true;
+	private String mainWindowTitle = MAIN_WINDOW_TIT_DEF;
 	private boolean memoryTab = false;
 	private UNITS memoryUnit = UNITS.KB;
-	private String customWindowTitle = CUSTOM_WINDOW_TIT_DEF;
-	private String mainWindowTitle = MAIN_WINDOW_TIT_DEF;
-	private boolean displayAlarm = true;
-
-	public boolean isApproximateTraffic() {
-		return approximateTraffic;
-	}
+	private List<NodeConfig> nodes = null;
+	private Properties props = null;
+	private int server_updaterate = 10;
+	private int timeline = 24 * 3600;
+	private int updaterate = 10;
+	private String userName = "admin";
+	private String userPass = "admin_pass";
+	private float warningTh = 50f;
+	private int width = 1850;
 
 	public Configuration(String filename) throws IOException {
 		props = new Properties();
 		props.load(new FileInputStream(filename));
 
 		updaterate = Integer.parseInt(props.getProperty(UPDATERATE_KEY, UPDATERATE_DEF));
-		server_updaterate =
-				Integer.parseInt(props.getProperty(SERVER_UPDATERATE_KEY, SERVER_UPDATERATE_DEF));
+		server_updaterate = Integer.parseInt(props.getProperty(SERVER_UPDATERATE_KEY, SERVER_UPDATERATE_DEF));
 		userName = props.getProperty(JMX_USER_NAME_KEY, JMX_USER_NAME_DEF);
 		userPass = props.getProperty(JMX_PASSWORD_KEY, JMX_PASSWORD_DEF);
 
@@ -157,8 +146,7 @@ public class Configuration {
 					}
 				}
 
-				nodes
-						.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], port, user, pass));
+				nodes.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], port, user, pass));
 			}
 		}
 
@@ -178,13 +166,10 @@ public class Configuration {
 
 		loadHistory = loadHistoryStr.equals("true");
 
-		warningTh =
-				Float.parseFloat(props.getProperty(WARNING_THRESHOLD_KEY, WARNING_THRESHOLD_DEF));
-		errorTh =
-				Float.parseFloat(props.getProperty(ERROR_THRESHOLD_KEY, ERROR_THRESHOLD_DEF));
+		warningTh = Float.parseFloat(props.getProperty(WARNING_THRESHOLD_KEY, WARNING_THRESHOLD_DEF));
+		errorTh = Float.parseFloat(props.getProperty(ERROR_THRESHOLD_KEY, ERROR_THRESHOLD_DEF));
 		alarmFileName = props.getProperty(ALARM_FILE_NAME_KEY, ALARM_FILE_NAME_DEF);
-		customWindow =
-				Boolean.parseBoolean(props.getProperty(CUSTOM_WINDOW_KEY, CUSTOM_WINDOW_DEF));
+		customWindow = Boolean.parseBoolean(props.getProperty(CUSTOM_WINDOW_KEY, CUSTOM_WINDOW_DEF));
 		memoryTab = Boolean.parseBoolean(props.getProperty(MEMORY_TAB_KEY, MEMORY_UNIT_VAL));
 
 		try {
@@ -196,8 +181,7 @@ public class Configuration {
 		approximateTraffic = Boolean.parseBoolean(props.getProperty(APPROXIMATE_TRAFFIC_KEY, APPROXIMATE_TRAFFIC_DEF));
 		customWindowTitle = props.getProperty(CUSTOM_WINDOW_TIT_KEY, CUSTOM_WINDOW_TIT_DEF);
 		mainWindowTitle = props.getProperty(MAIN_WINDOW_TIT_KEY, MAIN_WINDOW_TIT_DEF);
-		displayAlarm =
-				Boolean.parseBoolean(props.getProperty(DISPLAY_ALARM_KEY, DISPLAY_ALARM_DEF));
+		displayAlarm = Boolean.parseBoolean(props.getProperty(DISPLAY_ALARM_KEY, DISPLAY_ALARM_DEF));
 
 		for (String key : props.stringPropertyNames()) {
 			if (key.startsWith(CUSTOM_CHART_KEY)) {
@@ -214,6 +198,10 @@ public class Configuration {
 				chartConfig.addProperty(prop_key, props.getProperty(key));
 			}
 		}
+	}
+
+	public boolean isApproximateTraffic() {
+		return approximateTraffic;
 	}
 
 	public float getWarningThreshold() {
@@ -272,7 +260,6 @@ public class Configuration {
 		return memoryUnit;
 	}
 
-
 	public ChartConfig getChartConfig(int i) {
 		ChartConfig conf = customCharts.get(i);
 		if (conf == null) {
@@ -284,7 +271,6 @@ public class Configuration {
 	public boolean isMemoryTabEnabled() {
 		return memoryTab;
 	}
-
 
 	public boolean displayAlarm() {
 		return displayAlarm;

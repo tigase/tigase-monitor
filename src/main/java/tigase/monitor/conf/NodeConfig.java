@@ -20,7 +20,7 @@ package tigase.monitor.conf;
 
 //~--- JDK imports ------------------------------------------------------------
 
-import java.awt.Color;
+import java.awt.*;
 
 //~--- classes ----------------------------------------------------------------
 
@@ -31,6 +31,7 @@ import java.awt.Color;
  * @version $Rev: 4 $
  */
 public class NodeConfig {
+
 	private String color = null;
 	private String description = null;
 	private String hostname = null;
@@ -40,8 +41,7 @@ public class NodeConfig {
 
 	//~--- constructors ---------------------------------------------------------
 
-	public NodeConfig(String description, String colour, String hostname, int port,
-			String userName, String password) {
+	public NodeConfig(String description, String colour, String hostname, int port, String userName, String password) {
 		this.description = description;
 		this.color = colour;
 		this.hostname = hostname;
@@ -49,10 +49,9 @@ public class NodeConfig {
 		this.userName = userName;
 		this.password = password;
 
-
-		System.out.println(
-			String.format( "node config, description: %1$s \t color: %2$s \t hostname: %3$s \t port: %4$s \t userName: %5$s \t password: %6$s \t ", description, colour, hostname, port, userName, password )
-			);		
+		System.out.println(String.format(
+				"node config, description: %1$s \t color: %2$s \t hostname: %3$s \t port: %4$s \t userName: %5$s \t password: %6$s \t ",
+				description, colour, hostname, port, userName, password));
 
 	}
 

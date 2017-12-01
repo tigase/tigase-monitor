@@ -18,13 +18,6 @@
  */
 package tigase.monitor.panel;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Paint;
-import java.util.LinkedList;
-import java.util.List;
-
-import javax.swing.JPanel;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -34,12 +27,14 @@ import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import org.jfree.util.Rotation;
-
 import tigase.stats.JavaJMXProxyOpt;
 
-import static tigase.monitor.panel.DataChangeListener.BOSH_CONNECTIONS;
-import static tigase.monitor.panel.DataChangeListener.C2S_CONNECTIONS;
-import static tigase.monitor.panel.DataChangeListener.WS2S_CONNECTIONS;
+import javax.swing.*;
+import java.awt.*;
+import java.util.LinkedList;
+import java.util.List;
+
+import static tigase.monitor.panel.DataChangeListener.*;
 
 /**
  * Created: Sep 9, 2009 7:53:03 PM
@@ -47,11 +42,30 @@ import static tigase.monitor.panel.DataChangeListener.WS2S_CONNECTIONS;
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
-public class ConnectionsDistribution extends TigaseMonitor {
+public class ConnectionsDistribution
+		extends TigaseMonitor {
 
-	private DefaultPieDataset data = null;
 	private List<JFreeChart> charts = new LinkedList<JFreeChart>();
+	private DefaultPieDataset data = null;
 	private JPanel panel = null;
+
+	public static JPanel createChartPanel() {
+		ConnectionsDistribution monitor = new ConnectionsDistribution();
+		return monitor.getPanel();
+	}
+
+	private static DefaultPieDataset createDataset() {
+		return new DefaultPieDataset();
+	}
+
+	public static void main(String[] args) {
+
+		ChartTest demo = new ChartTest();
+		demo.pack();
+		RefineryUtilities.centerFrameOnScreen(demo);
+		demo.setVisible(true);
+
+	}
 
 	public ConnectionsDistribution() {
 		super("Distribution", 10, 10);
@@ -63,29 +77,6 @@ public class ConnectionsDistribution extends TigaseMonitor {
 		panel = new JPanel(new BorderLayout());
 		panel.setBackground(Color.DARK_GRAY);
 		panel.add(chart2dPanel);
-	}
-
-	private JFreeChart createChart(PiePlot plot) {
-		plot.setStartAngle(290);
-		plot.setDirection(Rotation.CLOCKWISE);
-		plot.setForegroundAlpha(0.75f);
-		plot.setNoDataMessage("Waiting for data from the server...");
-		plot.setSimpleLabels(true);
-		plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{1}"));
-		plot.setCircular(false);
-		JFreeChart chart = new JFreeChart("Users distribution",
-				JFreeChart.DEFAULT_TITLE_FONT, plot, false);
-		ChartUtilities.applyCurrentTheme(chart);
-		return chart;
-	}
-
-	private static DefaultPieDataset createDataset() {
-		return new DefaultPieDataset();
-	}
-
-	public static JPanel createChartPanel() {
-		ConnectionsDistribution monitor = new ConnectionsDistribution();
-		return monitor.getPanel();
 	}
 
 	public JPanel getPanel() {
@@ -109,20 +100,34 @@ public class ConnectionsDistribution extends TigaseMonitor {
 
 	public void setColor(String key, Paint color) {
 		for (JFreeChart chart : charts) {
-			PiePlot plot = (PiePlot)chart.getPlot();
+			PiePlot plot = (PiePlot) chart.getPlot();
 			plot.setSectionPaint(key, color);
 		}
 	}
 
 	@Override
 	public void update(String id, JavaJMXProxyOpt servBean) {
-		Integer count = (Integer)servBean.getMetricData(C2S_CONNECTIONS);
-		count += (Integer)servBean.getMetricData(BOSH_CONNECTIONS);
-		count += (Integer)servBean.getMetricData(WS2S_CONNECTIONS);
+		Integer count = (Integer) servBean.getMetricData(C2S_CONNECTIONS);
+		count += (Integer) servBean.getMetricData(BOSH_CONNECTIONS);
+		count += (Integer) servBean.getMetricData(WS2S_CONNECTIONS);
 		setValue(id, count);
 	}
 
-	static class ChartTest extends ApplicationFrame {
+	private JFreeChart createChart(PiePlot plot) {
+		plot.setStartAngle(290);
+		plot.setDirection(Rotation.CLOCKWISE);
+		plot.setForegroundAlpha(0.75f);
+		plot.setNoDataMessage("Waiting for data from the server...");
+		plot.setSimpleLabels(true);
+		plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{1}"));
+		plot.setCircular(false);
+		JFreeChart chart = new JFreeChart("Users distribution", JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+		ChartUtilities.applyCurrentTheme(chart);
+		return chart;
+	}
+
+	static class ChartTest
+			extends ApplicationFrame {
 
 		public ChartTest() {
 			super("Users distribution");
@@ -130,15 +135,6 @@ public class ConnectionsDistribution extends TigaseMonitor {
 			chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
 			setContentPane(chartPanel);
 		}
-
-	}
-
-	public static void main(String[] args) {
-
-		ChartTest demo = new ChartTest();
-		demo.pack();
-		RefineryUtilities.centerFrameOnScreen(demo);
-		demo.setVisible(true);
 
 	}
 

@@ -40,42 +40,38 @@ import java.util.List;
 
 /**
  * Created: Sep 9, 2009 11:47:00 PM
- * 
+ *
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 11 $
  */
-public class TigaseMonitorLine extends TigaseMonitor {
+public class TigaseMonitorLine
+		extends TigaseMonitor {
 
-	private String yTitle = null;
-	private double yAxisMax = 100;
-	private boolean countTotals = false;
-	private boolean countPerSec = true;
 	private boolean approximate = false;
-	private int timeline = 24 * 360;
-
-	private long max = 0;
-	private JPanel panel = null;
-	private Map<String, LastVal> lastVals = new LinkedHashMap<String, LastVal>();
+	private List<JFreeChart> charts = new LinkedList<JFreeChart>();
+	private boolean countPerSec = true;
+	private boolean countTotals = false;
+	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	private Map<String, Boolean> first = new LinkedHashMap<String, Boolean>(4);
 	private Map<String, double[]> lastResults = new LinkedHashMap<String, double[]>();
+	private Map<String, LastVal> lastVals = new LinkedHashMap<String, LastVal>();
+	private Map<String, Number> last_vals = new LinkedHashMap<String, Number>(64);
+	private long max = 0;
 	// private double[] lastResults = { 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d,
 	// 0d, 0d };
-
+	private Map<String, Double> oldVal = new LinkedHashMap<String, Double>(4);
+	private JPanel panel = null;
 	// private XYSeriesCollection data = null;
 	private Map<String, TimeSeries> series_map = new LinkedHashMap<String, TimeSeries>(10);
-	private TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
-	private Map<String, Number> last_vals = new LinkedHashMap<String, Number>(64);
-	private List<JFreeChart> charts = new LinkedList<JFreeChart>();
-	private DateAxis xAxis = null;
 	private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-	private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-	private Map<String, Double> oldVal = new LinkedHashMap<String, Double>(4);
-	private Map<String, Boolean> first = new LinkedHashMap<String, Boolean>(4);
+	private TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
+	private int timeline = 24 * 360;
+	private DateAxis xAxis = null;
+	private double yAxisMax = 100;
+	private String yTitle = null;
 
-
-
-	public TigaseMonitorLine(String title, String yTitle, double yAxisMax,
-			boolean countTotals, boolean countPerSec, boolean approximate, int timeline,
-			int updaterate, int serverUpdaterare) {
+	public TigaseMonitorLine(String title, String yTitle, double yAxisMax, boolean countTotals, boolean countPerSec,
+							 boolean approximate, int timeline, int updaterate, int serverUpdaterare) {
 
 		super(title, updaterate, serverUpdaterare);
 		this.yTitle = yTitle;
@@ -222,20 +218,18 @@ public class TigaseMonitorLine extends TigaseMonitor {
 
 		if (series != null) {
 			int max_history = Math.min(timeline, history.length);
-			int start =
-					((history.length > max_history * updateStep) ? history.length - max_history
-							* updateStep : 0);
+			int start = ((history.length > max_history * updateStep) ? history.length - max_history * updateStep : 0);
 
 			long currentTime = System.currentTimeMillis();
-			long time =
-					(currentTime - ((getServerUpdaterate() * (history.length - start)) * 1000 + getServerUpdaterate() * 1000));
+			long time = (currentTime -
+					((getServerUpdaterate() * (history.length - start)) * 1000 + getServerUpdaterate() * 1000));
 			initDelta(id, time, history[start]);
 
 			double val = 0.0;
 			for (int i = start; i < history.length; i += updateStep) {
 				if (i < history.length) {
-					time =
-							(currentTime - ((getServerUpdaterate() * (history.length - i)) * 1000 + getServerUpdaterate() * 1000));
+					time = (currentTime -
+							((getServerUpdaterate() * (history.length - i)) * 1000 + getServerUpdaterate() * 1000));
 					val = history[i];
 					if (calcDelta) {
 						val = nextDelta(id, time, history[i]);
@@ -244,8 +238,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 				}
 			}
 			if (getTitle() == "SM Traffic" && id.equalsIgnoreCase("yellow-1")) {
-				System.err.println("Title: " + getTitle() + ", ID: " + id + " last value added: "
-						+ val);
+				System.err.println("Title: " + getTitle() + ", ID: " + id + " last value added: " + val);
 			}
 			oldVal.put(id, val);
 
@@ -275,10 +268,25 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		return result;
 	}
 
+	public void setColor(String key, Paint color) {
+		TimeSeries series = series_map.get(key);
+
+		if (series != null) {
+			int idx = timeSeriesCollection.indexOf(series);
+
+			for (JFreeChart chart : charts) {
+				XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+
+				renderer.setSeriesPaint(idx, color);
+			}
+		} else {
+			System.err.println("Can't find series! " + key);
+		}
+	}
+
 	protected int getDivisionFactor() {
 		return 1;
 	}
-
 
 	private double calcApproximate(String key, double val) {
 		double result = val;
@@ -295,25 +303,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		return result;
 	}
 
-	public void setColor(String key, Paint color) {
-		TimeSeries series = series_map.get(key);
-
-		if (series != null) {
-			int idx = timeSeriesCollection.indexOf(series);
-
-			for (JFreeChart chart : charts) {
-				XYLineAndShapeRenderer renderer =
-						(XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
-
-				renderer.setSeriesPaint(idx, color);
-			}
-		} else {
-			System.err.println("Can't find series! " + key);
-		}
-	}
-
-	private void addValue(String key, long time, double val, boolean notify,
-			TimeSeries series) {
+	private void addValue(String key, long time, double val, boolean notify, TimeSeries series) {
 		val = val / getDivisionFactor();
 
 		RegularTimePeriod rtp = new Second(new Date(time));
@@ -368,8 +358,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 		plot.setRangeGridlinePaint(Color.white);
 		plot.setAxisOffset(new RectangleInsets(4, 4, 4, 4));
 
-		JFreeChart chart =
-				new JFreeChart(getTitle(), JFreeChart.DEFAULT_TITLE_FONT, plot, false);
+		JFreeChart chart = new JFreeChart(getTitle(), JFreeChart.DEFAULT_TITLE_FONT, plot, false);
 
 		ChartUtilities.applyCurrentTheme(chart);
 
@@ -377,6 +366,7 @@ public class TigaseMonitorLine extends TigaseMonitor {
 	}
 
 	private class LastVal {
+
 		private long time = 0;
 		private double val = 0;
 

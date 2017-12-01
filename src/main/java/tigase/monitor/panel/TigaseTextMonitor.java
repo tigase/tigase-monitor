@@ -40,42 +40,37 @@ import static tigase.monitor.panel.DataChangeListener.*;
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 6 $
  */
-public class TigaseTextMonitor extends TigaseMonitor {
+public class TigaseTextMonitor
+		extends TigaseMonitor {
 
-	private String id = null;
-	private TitledBorder title = null;
 	JPopupMenu contextMenu = null;
+	private JLabel clCache = null;
+	private JLabel clPackets = null;
+	private JLabel conns = null;
 	private JLabel cpu = null;
+	private JTextArea details = null;
+	private String id = null;
 	private JLabel mem = null;
 	private JLabel memGenName = null;
 	private JLabel memMax = null;
 	private JLabel memUsed = null;
-	private JLabel smPackets = null;
-	private JLabel queues = null;
-	private JLabel conns = null;
-	private JLabel overflows = null;
-	private JLabel clPackets = null;
-	private JLabel clCache = null;
-	private JTextArea details = null;
-	private JPanel panel = null;
-	private String[] metrics = { CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_MAX, HEAP_REGION_USED, SM_TRAFFIC_R,
-			SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R,
-			CL_TRAFFIC_S, CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT };
-	private long old_sm_traffic = 0;
+	private String[] metrics = {CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_MAX, HEAP_REGION_USED, SM_TRAFFIC_R,
+								SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R, CL_TRAFFIC_S,
+								CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT};
 	private long old_cl_traffic = 0;
+	private long old_sm_traffic = 0;
+	private JLabel overflows = null;
+	private JPanel panel = null;
+	private JLabel queues = null;
+	private JLabel smPackets = null;
+	private TitledBorder title = null;
 
-	public String[] getMetricsKeys() {
-		return metrics;
-	}
-
-	public TigaseTextMonitor(String id, List<NodeConfig> nodeConfigs, int updaterate,
-			int serverUpdaterare) {
+	public TigaseTextMonitor(String id, List<NodeConfig> nodeConfigs, int updaterate, int serverUpdaterare) {
 		super("Text: " + id, updaterate, serverUpdaterare);
 		this.id = id;
 		Border loweredetched = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
-		title =
-				BorderFactory.createTitledBorder(loweredetched, "initialization...",
-						TitledBorder.LEFT, TitledBorder.CENTER);
+		title = BorderFactory.createTitledBorder(loweredetched, "initialization...", TitledBorder.LEFT,
+												 TitledBorder.CENTER);
 		panel = new JPanel();
 		panel.setBorder(title);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
@@ -102,8 +97,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		mainStats.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
 		cpu = new JLabel("CPU: -%");
-		Font myLabelfont =
-				new Font(cpu.getFont().getName(), Font.BOLD, cpu.getFont().getSize() - 1);
+		Font myLabelfont = new Font(cpu.getFont().getName(), Font.BOLD, cpu.getFont().getSize() - 1);
 		cpu.setFont(myLabelfont);
 		cpu.setForeground(labelCol);
 		mainStats.add(cpu);
@@ -129,8 +123,8 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		mainStats.add(memMax);
 
 		memUsed = new JLabel("Mem (used): -");
-        memUsed.setFont(myLabelfont);
-        memUsed.setForeground(labelCol);
+		memUsed.setFont(myLabelfont);
+		memUsed.setForeground(labelCol);
 		mainStats.add(memUsed);
 
 		smPackets = new JLabel("SM Packets: - / -");
@@ -166,15 +160,18 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		panel.add(mainStats);
 
 		details = new JTextArea("Waiting for data from the server", 50, 100);
-		Font detailsFont =
-				new Font(details.getFont().getName(), details.getFont().getStyle(), details
-						.getFont().getSize() - 2);
+		Font detailsFont = new Font(details.getFont().getName(), details.getFont().getStyle(),
+									details.getFont().getSize() - 2);
 		details.setFont(detailsFont);
 		details.setBackground(new Color(0.15f, 0.15f, 0.15f));
 		details.setForeground(Color.LIGHT_GRAY);
 		details.setEditable(false);
 		panel.add(details);
 		panel.setMaximumSize(new Dimension(1920 / 5, 600));
+	}
+
+	public String[] getMetricsKeys() {
+		return metrics;
 	}
 
 	public void update(String id, JavaJMXProxyOpt servBean) {
@@ -193,15 +190,11 @@ public class TigaseTextMonitor extends TigaseMonitor {
 					cpu.setForeground(labelCol);
 				}
 			}
-			long sm_traffic =
-					(Long) servBean.getMetricData(SM_TRAFFIC_R)
-							+ (Long) servBean.getMetricData(SM_TRAFFIC_S);
+			long sm_traffic = (Long) servBean.getMetricData(SM_TRAFFIC_R) + (Long) servBean.getMetricData(SM_TRAFFIC_S);
 			long sm_traffic_delta = (sm_traffic - old_sm_traffic) / getUpdaterate();
 			old_sm_traffic = sm_traffic;
 			int sm_queue = (Integer) servBean.getMetricData(SM_QUEUE_WAIT);
-			s =
-					MessageFormat.format("SM Packets: {0,number,#} / {1,number,#}",
-							sm_traffic_delta, sm_queue);
+			s = MessageFormat.format("SM Packets: {0,number,#} / {1,number,#}", sm_traffic_delta, sm_queue);
 			smPackets.setText(s);
 			if (sm_traffic_delta > 10000 || sm_queue > 1000) {
 				if (sm_queue > 1000) {
@@ -220,16 +213,13 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			} else {
 				conns.setForeground(labelCol);
 			}
-			long cl_traffic =
-					(Long) servBean.getMetricData(CL_TRAFFIC_R)
-							+ (Long) servBean.getMetricData(CL_TRAFFIC_S);
+			long cl_traffic = (Long) servBean.getMetricData(CL_TRAFFIC_R) + (Long) servBean.getMetricData(CL_TRAFFIC_S);
 			long cl_traffic_delta = (cl_traffic - old_cl_traffic) / getUpdaterate();
 			old_cl_traffic = cl_traffic;
 			int cl_queue = (Integer) servBean.getMetricData(CL_QUEUE_WAIT);
 			int cl_io_queue = (Integer) servBean.getMetricData(CL_IO_QUEUE_WAIT);
-			s =
-					MessageFormat.format("CL Packets: {0,number,#} / {1,number,#} / {2,number,#}",
-							cl_traffic_delta, cl_queue, cl_io_queue);
+			s = MessageFormat.format("CL Packets: {0,number,#} / {1,number,#} / {2,number,#}", cl_traffic_delta,
+									 cl_queue, cl_io_queue);
 			clPackets.setText(s);
 			if (cl_traffic_delta > 10000 || cl_queue > 1000 || cl_io_queue > 10000) {
 				if (cl_queue > 1000 || cl_io_queue > 10000) {
@@ -240,7 +230,6 @@ public class TigaseTextMonitor extends TigaseMonitor {
 			} else {
 				clPackets.setForeground(labelCol);
 			}
-
 
 			float mem_usage = (Float) servBean.getMetricData(HEAP_USAGE);
 			float nh_usage = (Float) servBean.getMetricData(NONHEAP_USAGE);
@@ -255,22 +244,20 @@ public class TigaseTextMonitor extends TigaseMonitor {
 				}
 			}
 
-
-			String region = (String)servBean.getMetricData(HEAP_REGION_NAME);
+			String region = (String) servBean.getMetricData(HEAP_REGION_NAME);
 			s = MessageFormat.format("Region: {0}", region);
 			memGenName.setText(s);
 			memGenName.setForeground(labelCol);
 
-
 			String mem_heap_max = (String) servBean.getMetricData(HEAP_REGION_MAX);
 			s = MessageFormat.format("Mem (max): {0}", mem_heap_max);
-            memMax.setText(s);
-            memMax.setForeground(labelCol);
+			memMax.setText(s);
+			memMax.setForeground(labelCol);
 
-            String mem_heap_used = (String) servBean.getMetricData(HEAP_REGION_USED);
-            s = MessageFormat.format("Mem (used): {0}", mem_heap_used);
-            memUsed.setText(s);
-            memUsed.setForeground(labelCol);
+			String mem_heap_used = (String) servBean.getMetricData(HEAP_REGION_USED);
+			s = MessageFormat.format("Mem (used): {0}", mem_heap_used);
+			memUsed.setText(s);
+			memUsed.setForeground(labelCol);
 
 			int queue_wait = (Integer) servBean.getMetricData(QUEUE_WAIT);
 			s = MessageFormat.format("Queues: {0,number,#}", queue_wait);
@@ -305,7 +292,7 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		if (id.equals(this.id)) {
 			details.setText("Waiting for data from the server");
 		}
-		}
+	}
 
 	@Override
 	public List<JFreeChart> getCharts() {
@@ -317,7 +304,8 @@ public class TigaseTextMonitor extends TigaseMonitor {
 		return panel;
 	}
 
-	class PopupListener implements ActionListener {
+	class PopupListener
+			implements ActionListener {
 
 		private NodeConfig config = null;
 

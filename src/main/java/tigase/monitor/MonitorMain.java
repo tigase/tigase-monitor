@@ -36,7 +36,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -45,351 +44,344 @@ import java.util.TimerTask;
 /**
  * @author kobit
  */
-public class MonitorMain extends ApplicationFrame implements ActionListener {
+public class MonitorMain
+		extends ApplicationFrame
+		implements ActionListener {
 
-    protected static final long serialVersionUID = 1L;
-    protected static final String EXPORT_TO_PNG_CMD = "export-to-png";
-    protected static final String EXPORT_TO_JPG_CMD = "export-to-jpg";
-    protected static final String AUTO_EXPORT_TIMER_CMD = "auto-export-timer";
-    protected static final String EXPORT_DIRECTORY_CMD = "export-directory";
+	protected static final long serialVersionUID = 1L;
+	protected static final String EXPORT_TO_PNG_CMD = "export-to-png";
+	protected static final String EXPORT_TO_JPG_CMD = "export-to-jpg";
+	protected static final String AUTO_EXPORT_TIMER_CMD = "auto-export-timer";
+	protected static final String EXPORT_DIRECTORY_CMD = "export-directory";
 
-    protected static final String EXIT_CMD = "exit";
-    private static final String PROP_FILENAME_DEF = "etc/monitor.properties";
+	protected static final String EXIT_CMD = "exit";
+	private static final String PROP_FILENAME_DEF = "etc/monitor.properties";
 
-    private static final String PROP_FILENAME_KEY = "--init";
-    private static Configuration config = null;
-    private static List<JavaJMXProxyOpt> proxies = new LinkedList<>();
+	private static final String PROP_FILENAME_KEY = "--init";
+	public static List<TigaseMonitor> monitors = new LinkedList<>();
+	private static AlertDialogDisplay alertDialogDisplay = null;
+	private static Configuration config = null;
+	private static DataChange notifier = null;
+	private static List<JavaJMXProxyOpt> proxies = new LinkedList<>();
+	private static Timer timer = new Timer("Statistics updater", true);
 
-    public static boolean addMonitor(TigaseMonitor tigaseMonitor) {
-        return monitors.add(tigaseMonitor);
-    }
+	static {
+		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tigase Monitor");
+		System.setProperty("apple.awt.application.name", "Tigase Monitor");
 
-    public static boolean removeMonitor(TigaseMonitor tigaseMonitor) {
-        return monitors.remove(tigaseMonitor);
-    }
+	}
 
-    public static List<TigaseMonitor> monitors = new LinkedList<>();
-    private static DataChange notifier = null;
-    private static Timer timer = new Timer("Statistics updater", true);
-    private static AlertDialogDisplay alertDialogDisplay = null;
+	private JTextField dir = null;
 
-    private JTextField dir = null;
+	public static boolean addMonitor(TigaseMonitor tigaseMonitor) {
+		return monitors.add(tigaseMonitor);
+	}
 
-    static {
-        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tigase Monitor");
-        System.setProperty("apple.awt.application.name", "Tigase Monitor");
+	public static void main(String[] args) {
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
 
-    }
+		String propFile = PROP_FILENAME_DEF;
+		if (args != null && args.length > 1) {
+			if (args[0].equals(PROP_FILENAME_KEY)) {
+				propFile = args[1];
+			}
+		}
+		try {
+			config = new Configuration(propFile);
+		} catch (Exception e) {
+			System.out.println("init.properties file missing, using defaults.");
+			e.printStackTrace();
+		}
 
-    public MonitorMain(Configuration config) {
-        super(config.getMainTitle());
-    }
+		try {
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+		} catch (Exception e) {
+			// ... otherwise just use the system look and feel
+			try {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		StandardChartTheme theme = (StandardChartTheme) StandardChartTheme.createDarknessTheme();
+		theme.setChartBackgroundPaint(Color.DARK_GRAY);
+		theme.setPlotBackgroundPaint(new Color(0.15f, 0.15f, 0.15f));
+		ChartFactory.setChartTheme(theme);
 
-    public static void main(String[] args) {
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
+		MonitorMain app = new MonitorMain(config);
 
-        String propFile = PROP_FILENAME_DEF;
-        if (args != null && args.length > 1) {
-            if (args[0].equals(PROP_FILENAME_KEY)) {
-                propFile = args[1];
-            }
-        }
-        try {
-            config = new Configuration(propFile);
-        } catch (Exception e) {
-            System.out.println("init.properties file missing, using defaults.");
-            e.printStackTrace();
-        }
+		TigaseWindowAbstract windowMain = new WindowMain(config, app);
 
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
-        } catch (Exception e) {
-            // ... otherwise just use the system look and feel
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e2) {
-                e2.printStackTrace();
-            }
-        }
-        StandardChartTheme theme =
-                (StandardChartTheme) StandardChartTheme.createDarknessTheme();
-        theme.setChartBackgroundPaint(Color.DARK_GRAY);
-        theme.setPlotBackgroundPaint(new Color(0.15f, 0.15f, 0.15f));
-        ChartFactory.setChartTheme(theme);
-
-        MonitorMain app = new MonitorMain(config);
-
-        TigaseWindowAbstract windowMain = new WindowMain(config, app);
-
-        if (config.customWindow()) {
-            new WindowCustom(config, app);
+		if (config.customWindow()) {
+			new WindowCustom(config, app);
 
 //            windowMain.addPanels(config.getCustomTitle(), new TigasePanelCustom(config,app));
-        }
+		}
 
-        if (config.displayAlarm()) {
-            alertDialogDisplay = new AlertDialogDisplay(app, config.getAlarmFileName());
-            alertDialogDisplay.setDaemon(true);
-            alertDialogDisplay.start();
+		if (config.displayAlarm()) {
+			alertDialogDisplay = new AlertDialogDisplay(app, config.getAlarmFileName());
+			alertDialogDisplay.setDaemon(true);
+			alertDialogDisplay.start();
 
-            notifier = new AlertDataChange();
-        }
+			notifier = new AlertDataChange();
+		}
 
-        List<NodeConfig> nodeConfigs = config.getNodeConfigs();
+		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
-        for (NodeConfig nodeConfig : nodeConfigs) {
-            JavaJMXProxyOpt proxy =
-                    new JavaJMXProxyOpt(nodeConfig.getDescription(), nodeConfig.getHostname(),
-                            nodeConfig.getPort(), nodeConfig.getUserName(), nodeConfig.getPassword(),
-                            1000, config.getUpdaterate() * 1000, config.getLoadHistory());
+		for (NodeConfig nodeConfig : nodeConfigs) {
+			JavaJMXProxyOpt proxy = new JavaJMXProxyOpt(nodeConfig.getDescription(), nodeConfig.getHostname(),
+														nodeConfig.getPort(), nodeConfig.getUserName(),
+														nodeConfig.getPassword(), 1000, config.getUpdaterate() * 1000,
+														config.getLoadHistory());
 
-            proxies.add(proxy);
+			proxies.add(proxy);
 
-            if (notifier != null) {
-                proxy.addJMXProxyListener(notifier);
-            }
+			if (notifier != null) {
+				proxy.addJMXProxyListener(notifier);
+			}
 
-            for (TigaseMonitor monitor : monitors) {
-                proxy.addJMXProxyListener(monitor.getDataChangeListener());
-            }
+			for (TigaseMonitor monitor : monitors) {
+				proxy.addJMXProxyListener(monitor.getDataChangeListener());
+			}
 
-            proxy.start();
-        }
+			proxy.start();
+		}
 
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
 //                System.out.println("==\nUpdate... " + new Date());
-                for (JavaJMXProxyOpt javaJMXProxy : proxies) {
-                    try {
-                        if (javaJMXProxy.isInitialized()) {
-                            if (notifier != null) {
-                                notifier.update(javaJMXProxy.getId(), javaJMXProxy);
-                            }
-                            // System.out.println("Update proxy: " +
-                            // javaJMXProxy.getId());
-                            for (TigaseMonitor monitor : monitors) {
-                                if (monitor.isReady(javaJMXProxy.getId())) {
-                                    // System.out.println("Update monitor: " +
-                                    // monitor.getTitle());
-                                    monitor.getDataChangeListener().update(javaJMXProxy.getId(),
-                                            javaJMXProxy);
-                                } else {
-                                    System.out.println("Update monitor - monitor not ready: "
-                                            + monitor.getTitle());
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        System.err.println("Updated problem: " + e);
-                    }
-                }
-            }
-        }, 1000, config.getUpdaterate() * 1000L);
-    }
+				for (JavaJMXProxyOpt javaJMXProxy : proxies) {
+					try {
+						if (javaJMXProxy.isInitialized()) {
+							if (notifier != null) {
+								notifier.update(javaJMXProxy.getId(), javaJMXProxy);
+							}
+							// System.out.println("Update proxy: " +
+							// javaJMXProxy.getId());
+							for (TigaseMonitor monitor : monitors) {
+								if (monitor.isReady(javaJMXProxy.getId())) {
+									// System.out.println("Update monitor: " +
+									// monitor.getTitle());
+									monitor.getDataChangeListener().update(javaJMXProxy.getId(), javaJMXProxy);
+								} else {
+									System.out.println("Update monitor - monitor not ready: " + monitor.getTitle());
+								}
+							}
+						}
+					} catch (Exception e) {
+						System.err.println("Updated problem: " + e);
+					}
+				}
+			}
+		}, 1000, config.getUpdaterate() * 1000L);
+	}
 
+	public static boolean removeMonitor(TigaseMonitor tigaseMonitor) {
+		return monitors.remove(tigaseMonitor);
+	}
 
-    public void actionPerformed(ActionEvent e) {
-        String command = e.getActionCommand();
+	public MonitorMain(Configuration config) {
+		super(config.getMainTitle());
+	}
 
-        System.out.println(command);
+	public void actionPerformed(ActionEvent e) {
+		String command = e.getActionCommand();
 
-        switch (command) {
-            case EXIT_CMD:
-                attemptExit();
-                break;
-            case EXPORT_TO_PNG_CMD:
-                exportTo(".png");
-                break;
-            case EXPORT_TO_JPG_CMD:
-                exportTo(".jpg");
-                break;
-            case AUTO_EXPORT_TIMER_CMD:
-                autoExportTimer();
-                break;
-            case EXPORT_DIRECTORY_CMD:
-                dir = directoryChooser();
-                break;
-        }
-    }
+		System.out.println(command);
 
+		switch (command) {
+			case EXIT_CMD:
+				attemptExit();
+				break;
+			case EXPORT_TO_PNG_CMD:
+				exportTo(".png");
+				break;
+			case EXPORT_TO_JPG_CMD:
+				exportTo(".jpg");
+				break;
+			case AUTO_EXPORT_TIMER_CMD:
+				autoExportTimer();
+				break;
+			case EXPORT_DIRECTORY_CMD:
+				dir = directoryChooser();
+				break;
+		}
+	}
 
-    private void attemptExit() {
-        String title = "Confirm";
-        String message = "Are you sure you want to exit?";
-        int result =
-                JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE);
-        if (result == JOptionPane.YES_OPTION) {
-            dispose();
-            System.exit(0);
-        }
-    }
+	private void attemptExit() {
+		String title = "Confirm";
+		String message = "Are you sure you want to exit?";
+		int result = JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION,
+												   JOptionPane.QUESTION_MESSAGE);
+		if (result == JOptionPane.YES_OPTION) {
+			dispose();
+			System.exit(0);
+		}
+	}
 
-    private void exportTo(String ext) {
-        MFileChooser fc =
-                new MFileChooser("Directory to store all charts as " + ext + " files");
+	private void exportTo(String ext) {
+		MFileChooser fc = new MFileChooser("Directory to store all charts as " + ext + " files");
 
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        int result = fc.showSaveDialog(this);
+		int result = fc.showSaveDialog(this);
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File dir_res = fc.getSelectedFile();
+		if (result == JFileChooser.APPROVE_OPTION) {
+			File dir_res = fc.getSelectedFile();
 
-            saveAllTo(dir_res, ext, false, 0, 1, 0);
-        }
-    }
+			saveAllTo(dir_res, ext, false, 0, 1, 0);
+		}
+	}
 
-    private void saveAllTo(File dir, String ext, boolean exitOnComplete, long delay,
-                           int repeat, long interval) {
-        Thread thread =
-                new BackgroundSaver(this, dir, ext, exitOnComplete, delay, repeat, interval);
+	private void saveAllTo(File dir, String ext, boolean exitOnComplete, long delay, int repeat, long interval) {
+		Thread thread = new BackgroundSaver(this, dir, ext, exitOnComplete, delay, repeat, interval);
 
-        thread.start();
-    }
+		thread.start();
+	}
 
-    private void autoExportTimer() {
-        String message = "Please select options for chart export.";
-        JLabel label = new JLabel("Timer delay in seconds");
-        JTextField delay = new JTextField();
+	private void autoExportTimer() {
+		String message = "Please select options for chart export.";
+		JLabel label = new JLabel("Timer delay in seconds");
+		JTextField delay = new JTextField();
 
-        delay.setText("3600");
+		delay.setText("3600");
 
-        JLabel repeat_lab = new JLabel("Repeat saving images");
-        JTextField repeat = new JTextField();
+		JLabel repeat_lab = new JLabel("Repeat saving images");
+		JTextField repeat = new JTextField();
 
-        repeat.setText("1");
+		repeat.setText("1");
 
-        JLabel interval_lab = new JLabel("Interval if repeat greater than 1");
-        JTextField interval = new JTextField();
+		JLabel interval_lab = new JLabel("Interval if repeat greater than 1");
+		JTextField interval = new JTextField();
 
-        interval.setText("3600");
+		interval.setText("3600");
 
-        JCheckBox pngExport = new JCheckBox("Export to PNG", true);
-        JCheckBox jpgExport = new JCheckBox("Export to JPG", false);
-        JCheckBox exitOnComplete = new JCheckBox("Exit on complete", false);
-        JLabel labelDir = new JLabel("Directory");
-        JPanel dirPanel = new JPanel();
+		JCheckBox pngExport = new JCheckBox("Export to PNG", true);
+		JCheckBox jpgExport = new JCheckBox("Export to JPG", false);
+		JCheckBox exitOnComplete = new JCheckBox("Exit on complete", false);
+		JLabel labelDir = new JLabel("Directory");
+		JPanel dirPanel = new JPanel();
 
-        dirPanel.setLayout(new BoxLayout(dirPanel, BoxLayout.X_AXIS));
-        dir = new JTextField();
-        dirPanel.add(dir);
+		dirPanel.setLayout(new BoxLayout(dirPanel, BoxLayout.X_AXIS));
+		dir = new JTextField();
+		dirPanel.add(dir);
 
-        JButton dirButton = new JButton("Directory...");
+		JButton dirButton = new JButton("Directory...");
 
-        dirButton.setActionCommand(EXPORT_DIRECTORY_CMD);
-        dirButton.addActionListener(this);
-        dirPanel.add(dirButton);
+		dirButton.setActionCommand(EXPORT_DIRECTORY_CMD);
+		dirButton.addActionListener(this);
+		dirPanel.add(dirButton);
 
-        int result =
-                JOptionPane.showOptionDialog(this, new Object[]{message, label, delay,
-                                repeat_lab, repeat, interval_lab, interval, pngExport, jpgExport,
-                                exitOnComplete, labelDir, dirPanel}, "Login", JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.QUESTION_MESSAGE, null, null, null);
+		int result = JOptionPane.showOptionDialog(this,
+												  new Object[]{message, label, delay, repeat_lab, repeat, interval_lab,
+															   interval, pngExport, jpgExport, exitOnComplete, labelDir,
+															   dirPanel}, "Login", JOptionPane.OK_CANCEL_OPTION,
+												  JOptionPane.QUESTION_MESSAGE, null, null, null);
 
-        if (result == JOptionPane.OK_OPTION) {
-            long delayLong = -1;
-            int repeatInt = 1;
-            long intervalLong = -1;
+		if (result == JOptionPane.OK_OPTION) {
+			long delayLong = -1;
+			int repeatInt = 1;
+			long intervalLong = -1;
 
-            try {
-                delayLong = Long.parseLong(delay.getText()) * 1000;
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Incorrect delay value: " + delay.getText(),
-                        "Error", JOptionPane.ERROR_MESSAGE);
+			try {
+				delayLong = Long.parseLong(delay.getText()) * 1000;
+			} catch (Exception e) {
+				JOptionPane.showMessageDialog(this, "Incorrect delay value: " + delay.getText(), "Error",
+											  JOptionPane.ERROR_MESSAGE);
 
-                return;
-            }
+				return;
+			}
 
-            if ((repeat.getText() != null) && !repeat.getText().isEmpty()) {
-                try {
-                    repeatInt = Integer.parseInt(repeat.getText());
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this,
-                            "Incorrect repeat value: " + repeat.getText(), "Error",
-                            JOptionPane.ERROR_MESSAGE);
+			if ((repeat.getText() != null) && !repeat.getText().isEmpty()) {
+				try {
+					repeatInt = Integer.parseInt(repeat.getText());
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(this, "Incorrect repeat value: " + repeat.getText(), "Error",
+												  JOptionPane.ERROR_MESSAGE);
 
-                    return;
-                }
-            }
+					return;
+				}
+			}
 
-            if (repeatInt > 1) {
-                try {
-                    intervalLong = Long.parseLong(interval.getText()) * 1000;
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this,
-                            "Incorrect interval value: " + interval.getText(), "Error",
-                            JOptionPane.ERROR_MESSAGE);
+			if (repeatInt > 1) {
+				try {
+					intervalLong = Long.parseLong(interval.getText()) * 1000;
+				} catch (Exception e) {
+					JOptionPane.showMessageDialog(this, "Incorrect interval value: " + interval.getText(), "Error",
+												  JOptionPane.ERROR_MESSAGE);
 
-                    return;
-                }
-            }
+					return;
+				}
+			}
 
-            if ((dir.getText() == null) || dir.getText().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please enter valid directory name.",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+			if ((dir.getText() == null) || dir.getText().isEmpty()) {
+				JOptionPane.showMessageDialog(this, "Please enter valid directory name.", "Error",
+											  JOptionPane.ERROR_MESSAGE);
 
-                return;
-            }
+				return;
+			}
 
-            boolean exit = exitOnComplete.isSelected();
+			boolean exit = exitOnComplete.isSelected();
 
-            if (pngExport.isSelected()) {
-                saveAllTo(new File(dir.getText()), ".png", exit && !jpgExport.isSelected(),
-                        delayLong, repeatInt, intervalLong);
-            }
+			if (pngExport.isSelected()) {
+				saveAllTo(new File(dir.getText()), ".png", exit && !jpgExport.isSelected(), delayLong, repeatInt,
+						  intervalLong);
+			}
 
-            if (jpgExport.isSelected()) {
-                saveAllTo(new File(dir.getText()), ".jpg", exit, delayLong + 1000, repeatInt,
-                        intervalLong);
-            }
-        }
-    }
+			if (jpgExport.isSelected()) {
+				saveAllTo(new File(dir.getText()), ".jpg", exit, delayLong + 1000, repeatInt, intervalLong);
+			}
+		}
+	}
 
-    private JTextField directoryChooser() {
-        JTextField dir_result = new JTextField();
-        MFileChooser fc = new MFileChooser("Directory to store all charts as images");
+	private JTextField directoryChooser() {
+		JTextField dir_result = new JTextField();
+		MFileChooser fc = new MFileChooser("Directory to store all charts as images");
 
-        fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
-        int result = fc.showSaveDialog(this);
+		int result = fc.showSaveDialog(this);
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File dir_res = fc.getSelectedFile();
+		if (result == JFileChooser.APPROVE_OPTION) {
+			File dir_res = fc.getSelectedFile();
 
-            dir_result.setText(dir_res.toString());
-        }
+			dir_result.setText(dir_res.toString());
+		}
 
-        return dir_result;
+		return dir_result;
 
-    }
+	}
 
-    private static class AlertDataChange extends DataChange {
+	private static class AlertDataChange
+			extends DataChange {
 
-        private float warningThreshold = config.getWarningThreshold();
-        private float errorThreshold = config.getErrorThreshold();
+		private float errorThreshold = config.getErrorThreshold();
+		private float warningThreshold = config.getWarningThreshold();
 
-        public AlertDataChange() {
-            super(null, false, false, DataChangeListener.CPU_USAGE, DataChangeListener.HEAP_USAGE, DataChangeListener.NONHEAP_USAGE);
-        }
+		public AlertDataChange() {
+			super(null, false, false, DataChangeListener.CPU_USAGE, DataChangeListener.HEAP_USAGE,
+				  DataChangeListener.NONHEAP_USAGE);
+		}
 
-        public void update(String id, JavaJMXProxyOpt bean) {
-            for (String dataId : getDataIds()) {
-                Object metricData = bean.getMetricData(dataId);
-                if (null != metricData) {
-                    float val = (Float) metricData;
-                    if (val > errorThreshold) {
-                        alertDialogDisplay.wakeup(JOptionPane.ERROR_MESSAGE, "Resource near limit!",
-                                "Critical " + msgMapping.get(dataId) + " usage on " + id + " machine: " + bean.getHostname());
-                    }
-                    if (val > warningThreshold) {
-                        alertDialogDisplay.wakeup(JOptionPane.WARNING_MESSAGE, "High resource usage!",
-                                "High " + msgMapping.get(dataId) + " usage on " + id + " machine: " + bean.getHostname());
-                    }
-                }
-            }
-        }
+		public void update(String id, JavaJMXProxyOpt bean) {
+			for (String dataId : getDataIds()) {
+				Object metricData = bean.getMetricData(dataId);
+				if (null != metricData) {
+					float val = (Float) metricData;
+					if (val > errorThreshold) {
+						alertDialogDisplay.wakeup(JOptionPane.ERROR_MESSAGE, "Resource near limit!",
+												  "Critical " + msgMapping.get(dataId) + " usage on " + id +
+														  " machine: " + bean.getHostname());
+					}
+					if (val > warningThreshold) {
+						alertDialogDisplay.wakeup(JOptionPane.WARNING_MESSAGE, "High resource usage!",
+												  "High " + msgMapping.get(dataId) + " usage on " + id + " machine: " +
+														  bean.getHostname());
+					}
+				}
+			}
+		}
 
-    }
+	}
 }

@@ -18,15 +18,6 @@
  */
 package tigase.monitor;
 
-import java.awt.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.panel.TigasePanel;
 import tigase.monitor.panel.TigasePanelCustom;
@@ -34,21 +25,20 @@ import tigase.monitor.panel.TigasePanelCustom;
 /**
  * @author Artur Hefczyc Created Jun 9, 2011
  */
-public class WindowCustom extends TigaseWindowAbstract {
+public class WindowCustom
+		extends TigaseWindowAbstract {
 
-    private static final long serialVersionUID = 1L;
-    private MonitorMain parent = null;
+	private static final long serialVersionUID = 1L;
+	private MonitorMain parent = null;
 
-    public WindowCustom(Configuration config, MonitorMain parent) {
-        super(config,parent);
+	public WindowCustom(Configuration config, MonitorMain parent) {
+		super(config, parent);
 
-        TigasePanel panel = new TigasePanelCustom(config, this);
-        panels.put("Custom Panel", panel);
+		TigasePanel panel = new TigasePanelCustom(config, this);
+		panels.put("Custom Panel", panel);
 
-        init();
+		init();
 
-    }
-
-
+	}
 
 }

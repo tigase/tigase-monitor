@@ -22,53 +22,53 @@ package tigase.monitor.panel;
 import tigase.monitor.conf.Configuration;
 import tigase.monitor.conf.NodeConfig;
 
-import java.util.List;
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 /**
  * Created by wojtek on 19/07/16.
  */
-public class TigasePanelCustom extends TigasePanel {
+public class TigasePanelCustom
+		extends TigasePanel {
 
-    public TigasePanelCustom(Configuration conf, JFrame mainFrame) {
-        super(conf, mainFrame);
+	public TigasePanelCustom(Configuration conf, JFrame mainFrame) {
+		super(conf, mainFrame);
 
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        setBackground(Color.DARK_GRAY);
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		setBackground(Color.DARK_GRAY);
+		setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
-        JPanel row1 = addRow(this);
+		JPanel row1 = addRow(this);
 
-        int width = Math.round(config.getWidth() * row1_width_factor - 5);
-        int height = Math.round(config.getHeight() * row1_height_factor);
+		int width = Math.round(config.getWidth() * row1_width_factor - 5);
+		int height = Math.round(config.getHeight() * row1_height_factor);
 
-        TigaseMonitorLine custom1 = addCustomChart(config, height, width, row1, 1);
+		TigaseMonitorLine custom1 = addCustomChart(config, height, width, row1, 1);
 
-        TigaseMonitorLine custom2 = addCustomChart(config, height, width, row1, 2);
+		TigaseMonitorLine custom2 = addCustomChart(config, height, width, row1, 2);
 
-        JPanel row2 = addRow(this);
+		JPanel row2 = addRow(this);
 
-        width = Math.round(config.getWidth() * row2_width_factor - 5);
-        height = Math.round(config.getHeight() * row2_height_factor);
+		width = Math.round(config.getWidth() * row2_width_factor - 5);
+		height = Math.round(config.getHeight() * row2_height_factor);
 
-        TigaseMonitorLine custom3 = addCustomChart(config, height, width, row2, 3);
+		TigaseMonitorLine custom3 = addCustomChart(config, height, width, row2, 3);
 
-        TigaseMonitorLine custom4 = addCustomChart(config, height, width, row2, 4);
+		TigaseMonitorLine custom4 = addCustomChart(config, height, width, row2, 4);
 
-        TigaseMonitorLine custom5 = addCustomChart(config, height, width, row2, 5);
+		TigaseMonitorLine custom5 = addCustomChart(config, height, width, row2, 5);
 
-        List<NodeConfig> nodeConfigs = config.getNodeConfigs();
+		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
-        for (NodeConfig nodeConfig : nodeConfigs) {
-            custom1.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            custom2.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            custom4.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            custom5.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            custom3.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-        }
+		for (NodeConfig nodeConfig : nodeConfigs) {
+			custom1.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom2.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom4.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom5.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			custom3.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+		}
 
-    }
-
+	}
 
 }

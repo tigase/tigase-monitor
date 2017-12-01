@@ -19,43 +19,41 @@
 package tigase.monitor;
 
 import tigase.monitor.conf.Configuration;
-import tigase.monitor.panel.TigasePanel;
-import tigase.monitor.panel.TigasePanelCustom;
 import tigase.monitor.panel.TigasePanelMain;
 import tigase.monitor.panel.TigasePanelMemory;
 
 import javax.swing.*;
-import java.awt.*;
 
 /**
  * @author Artur Hefczyc Created Jun 9, 2011
  */
-public class WindowMain extends TigaseWindowAbstract {
+public class WindowMain
+		extends TigaseWindowAbstract {
 
-    private static final long serialVersionUID = 1L;
-    private MonitorMain parent = null;
+	private static final long serialVersionUID = 1L;
+	private MonitorMain parent = null;
 
-    public WindowMain(Configuration conf, MonitorMain parent) {
-        super(conf, parent);
+	public WindowMain(Configuration conf, MonitorMain parent) {
+		super(conf, parent);
 
-        panels.put("Live View", new TigasePanelMain(config, mainFrame));
+		panels.put("Live View", new TigasePanelMain(config, mainFrame));
 
-        if (config.isMemoryTabEnabled()) {
-            panels.put("Live Memory View", new TigasePanelMemory(config, mainFrame));
-        }
+		if (config.isMemoryTabEnabled()) {
+			panels.put("Live Memory View", new TigasePanelMemory(config, mainFrame));
+		}
 
-        init();
+		init();
 
-    }
+	}
 
-    protected JMenu createMenu() {
-        JMenu monitorMenu = super.createMenu();
+	protected JMenu createMenu() {
+		JMenu monitorMenu = super.createMenu();
 
-        addMenuItem(monitorMenu, "Export to PNG...", MonitorMain.EXPORT_TO_PNG_CMD, 'p');
-        addMenuItem(monitorMenu, "Export to JPG...", MonitorMain.EXPORT_TO_JPG_CMD, 'j');
-        monitorMenu.addSeparator();
-        addMenuItem(monitorMenu, "Auto export timer...", MonitorMain.AUTO_EXPORT_TIMER_CMD, 'a');
+		addMenuItem(monitorMenu, "Export to PNG...", MonitorMain.EXPORT_TO_PNG_CMD, 'p');
+		addMenuItem(monitorMenu, "Export to JPG...", MonitorMain.EXPORT_TO_JPG_CMD, 'j');
+		monitorMenu.addSeparator();
+		addMenuItem(monitorMenu, "Auto export timer...", MonitorMain.AUTO_EXPORT_TIMER_CMD, 'a');
 
-        return monitorMenu;
-    }
+		return monitorMenu;
+	}
 }

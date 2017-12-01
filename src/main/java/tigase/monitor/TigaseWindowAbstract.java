@@ -22,11 +22,7 @@ package tigase.monitor;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 import tigase.monitor.conf.Configuration;
-import tigase.monitor.panel.TigasePanel;
-import tigase.monitor.panel.TigasePanelMain;
-import tigase.monitor.panel.TigasePanelMemory;
 
-import javax.imageio.plugins.jpeg.JPEGHuffmanTable;
 import javax.swing.*;
 import java.awt.*;
 import java.util.LinkedHashMap;
@@ -35,103 +31,98 @@ import java.util.Map;
 /**
  * Created by wojtek on 19/07/16.
  */
-public abstract class TigaseWindowAbstract extends ApplicationFrame {
+public abstract class TigaseWindowAbstract
+		extends ApplicationFrame {
 
-    protected Configuration config = null;
-    protected MonitorMain mainFrame = null;
-    protected Dimension preferredSize;
-    protected JMenu menu = null;
-    protected boolean initiated = false;
-    protected Map<String, JPanel> panels = new LinkedHashMap<>();
+	protected static final String EXIT_CMD = "exit";
+	protected Configuration config = null;
+	protected boolean initiated = false;
+	protected MonitorMain mainFrame = null;
+	protected JMenu menu = null;
+	protected Map<String, JPanel> panels = new LinkedHashMap<>();
+	protected Dimension preferredSize;
 
-    protected static final String EXIT_CMD = "exit";
+	public TigaseWindowAbstract(Configuration conf, MonitorMain parent) {
+		super(conf.getMainTitle());
+		this.config = conf;
+		this.mainFrame = parent;
+		this.menu = createMenu();
+		preferredSize = new Dimension(config.getWidth(), config.getHeight());
+	}
 
+	public JMenu getJMenu() {
+		return menu;
+	}
 
-    public JMenu getJMenu() {
-        return menu;
-    }
+	public Map<String, JPanel> getJPanels() {
+		return panels;
+	}
 
-    public Map<String, JPanel> getJPanels() {
-        return panels;
-    }
+	public void addPanels(String title, JPanel panel) {
+		panels.put(title, panel);
+		init();
+	}
 
-    public void addPanels (String title, JPanel panel) {
-        panels.put(title, panel);
-        init();
-    }
+	public Dimension getPreferredSize() {
+		Dimension dimension = new Dimension(config.getWidth(), config.getHeight());
+		return dimension;
+	}
 
-    public Dimension getPreferredSize() {
-        Dimension dimension = new Dimension(config.getWidth(), config.getHeight());
-        return dimension;
-    }
+	public void init() {
+		setJMenuBar(createMenuBar());
+		setContentPane(createContent());
+		setPreferredSize(preferredSize);
 
-    public TigaseWindowAbstract(Configuration conf, MonitorMain parent) {
-        super(conf.getMainTitle());
-        this.config = conf;
-        this.mainFrame = parent;
-        this.menu = createMenu();
-        preferredSize = new Dimension(config.getWidth(), config.getHeight());
-    }
+		pack();
+		RefineryUtilities.centerFrameOnScreen(this);
+		setVisible(true);
 
-    public void init() {
-        setJMenuBar(createMenuBar());
-        setContentPane(createContent());
-        setPreferredSize(preferredSize);
+		initiated = true;
+	}
 
-        pack();
-        RefineryUtilities.centerFrameOnScreen(this);
-        setVisible(true);
+	protected JMenu createMenu() {
+		JMenu monitorMenu = new JMenu("Monitor", true);
 
-        initiated = true;
-    }
+		monitorMenu.setMnemonic('M');
 
-    protected JMenu createMenu() {
-        JMenu monitorMenu = new JMenu("Monitor", true);
+		return monitorMenu;
+	}
 
-        monitorMenu.setMnemonic('M');
+	protected void addMenuItem(JMenu monitorMenu, String text, String exportToPngCmd, char accelerator) {
+		JMenuItem item;
+		item = new JMenuItem(text, accelerator);
+		item.setActionCommand(exportToPngCmd);
+		item.addActionListener(mainFrame);
+		monitorMenu.add(item);
+	}
 
+	protected JComponent createContent() {
 
-        return monitorMenu;
-    }
+		JPanel content = new JPanel(new BorderLayout());
+		content.setBackground(Color.DARK_GRAY);
 
-    private JMenuBar createMenuBar() {
-        JMenuBar menuBar = new JMenuBar();
+		JTabbedPane tabs = new JTabbedPane();
+		tabs.setBackground(Color.DARK_GRAY);
 
-        JMenu monitorMenu = getJMenu();
+		for (Map.Entry<String, JPanel> panelEntry : panels.entrySet()) {
+			tabs.add(panelEntry.getKey(), panelEntry.getValue());
+		}
+		content.add(tabs);
+		return content;
+	}
 
-        if (!initiated) {
-            monitorMenu.addSeparator();
-            addMenuItem(monitorMenu, "Exit", MonitorMain.EXIT_CMD, 'x');
-        }
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
 
-        menuBar.add(monitorMenu);
-        return menuBar;
-    }
+		JMenu monitorMenu = getJMenu();
 
+		if (!initiated) {
+			monitorMenu.addSeparator();
+			addMenuItem(monitorMenu, "Exit", MonitorMain.EXIT_CMD, 'x');
+		}
 
-    protected void addMenuItem(JMenu monitorMenu, String text, String exportToPngCmd, char accelerator) {
-        JMenuItem item;
-        item = new JMenuItem(text, accelerator);
-        item.setActionCommand(exportToPngCmd);
-        item.addActionListener(mainFrame);
-        monitorMenu.add(item);
-    }
-
-
-    protected JComponent createContent() {
-
-        JPanel content = new JPanel(new BorderLayout());
-        content.setBackground(Color.DARK_GRAY);
-
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.setBackground(Color.DARK_GRAY);
-
-        for (Map.Entry<String, JPanel> panelEntry : panels.entrySet()) {
-            tabs.add(panelEntry.getKey(), panelEntry.getValue());
-        }
-        content.add(tabs);
-        return content;
-    }
-
+		menuBar.add(monitorMenu);
+		return menuBar;
+	}
 
 }

@@ -26,144 +26,140 @@ import tigase.stats.JavaJMXProxyOpt;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 
 import static tigase.monitor.panel.DataChangeListener.*;
 
-public class TigasePanelMain extends TigasePanel {
+public class TigasePanelMain
+		extends TigasePanel {
 
+	public TigasePanelMain(Configuration conf, JFrame mainFrame) {
+		super(conf, mainFrame);
 
-    public TigasePanelMain(Configuration conf, JFrame mainFrame) {
-        super(conf, mainFrame);
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		setBackground(Color.DARK_GRAY);
+		setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
+		JPanel row1 = addRow(this);
 
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        setBackground(Color.DARK_GRAY);
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		ConnectionsDistribution distr = new ConnectionsDistribution();
+		new DataChange(distr, false, false, C2S_CONNECTIONS, BOSH_CONNECTIONS, WS2S_CONNECTIONS) {
 
-        JPanel row1 = addRow(this);
+			public void update(String id, JavaJMXProxyOpt bean) {
+				monitor.update(id, bean);
+			}
 
-        ConnectionsDistribution distr = new ConnectionsDistribution();
-        new DataChange(distr, false, false, C2S_CONNECTIONS, BOSH_CONNECTIONS, WS2S_CONNECTIONS) {
+		};
 
-            public void update(String id, JavaJMXProxyOpt bean) {
-                monitor.update(id, bean);
-            }
+		MonitorMain.monitors.add(distr);
 
-        };
+		int width_distr = Math.round(config.getHeight() * row1_height_factor);
+		int height = Math.round(config.getHeight() * row1_height_factor);
 
-        MonitorMain.monitors.add(distr);
+		Dimension dim;
+		dim = new Dimension(width_distr, height);
 
-        int width_distr = Math.round(config.getHeight() * row1_height_factor);
-        int height = Math.round(config.getHeight() * row1_height_factor);
+		distr.getPanel().setPreferredSize(dim);
+		row1.add(distr.getPanel());
 
+		int width;
+		width = Math.round((config.getWidth() - width_distr) * row1_width_factor - 10);
+		height = Math.round(config.getHeight() * row1_height_factor);
 
+		TigaseMonitorLine cpu = new TigaseMonitorLine("CPU Load", "CPU %", 100, false, false, true,
+													  config.getTimeline(), config.getUpdaterate(),
+													  config.getServerUpdaterate());
+		new DataChange(cpu, false, true, CPU_USAGE);
 
-        Dimension dim;
-        dim = new Dimension(width_distr, height);
+		MonitorMain.monitors.add(cpu);
 
-        distr.getPanel().setPreferredSize(dim);
-        row1.add(distr.getPanel());
+		dim = new Dimension(width, height);
+		cpu.getPanel().setPreferredSize(dim);
+		row1.add(cpu.getPanel());
 
-        int width;
-        width = Math.round((config.getWidth() - width_distr) * row1_width_factor - 10);
-        height = Math.round(config.getHeight() * row1_height_factor);
+		TigaseMonitorLine mem = new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, false, true,
+													  config.getTimeline(), config.getUpdaterate(),
+													  config.getServerUpdaterate());
+		new DataChange(mem, false, true, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_NAME);
 
-        TigaseMonitorLine cpu =
-                new TigaseMonitorLine("CPU Load", "CPU %", 100, false, false, true,
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-        new DataChange(cpu, false, true, CPU_USAGE);
+		MonitorMain.monitors.add(mem);
+		dim = new Dimension(width, height);
+		mem.getPanel().setPreferredSize(dim);
+		row1.add(mem.getPanel());
+		width = Math.round(config.getWidth() * row2_width_factor - 5);
+		height = Math.round(config.getHeight() * row2_height_factor);
 
-        MonitorMain.monitors.add(cpu);
+		JPanel row2 = addRow(this);
 
-        dim = new Dimension(width, height);
-        cpu.getPanel().setPreferredSize(dim);
-        row1.add(cpu.getPanel());
+		TigaseMonitorLine conns = new TigaseMonitorLine("Connections", "Connections per node", 10, true, false, false,
+														config.getTimeline(), config.getUpdaterate(),
+														config.getServerUpdaterate());
+		new DataChange(conns, false, true, C2S_CONNECTIONS, WS2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS);
 
-        TigaseMonitorLine mem =
-                new TigaseMonitorLine("Memory Usage", "MEM %", 100, false, false, true,
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-        new DataChange(mem, false, true, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_NAME);
+		MonitorMain.monitors.add(conns);
+		dim = new Dimension(width, height);
+		conns.getPanel().setPreferredSize(dim);
+		row2.add(conns.getPanel());
 
-        MonitorMain.monitors.add(mem);
-        dim = new Dimension(width, height);
-        mem.getPanel().setPreferredSize(dim);
-        row1.add(mem.getPanel());
-        width = Math.round(config.getWidth() * row2_width_factor - 5);
-        height = Math.round(config.getHeight() * row2_height_factor);
+		TigaseMonitorLine sm = new TigaseMonitorLine("SM Traffic", "Packets/sec", 50, true, true,
+													 conf.isApproximateTraffic(), config.getTimeline(),
+													 config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(sm, true, true, SM_TRAFFIC_R, SM_TRAFFIC_S);
 
-        JPanel row2 = addRow(this);
+		MonitorMain.monitors.add(sm);
+		dim = new Dimension(width, height);
+		sm.getPanel().setPreferredSize(dim);
+		row2.add(sm.getPanel());
 
-        TigaseMonitorLine conns =
-                new TigaseMonitorLine("Connections", "Connections per node", 10, true, false, false,
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-        new DataChange(conns, false, true, C2S_CONNECTIONS, WS2S_CONNECTIONS, BOSH_CONNECTIONS, S2S_CONNECTIONS);
+		TigaseMonitorLine cl = new TigaseMonitorLine("Cluster Traffic", "Packets/sec", 50, true, true,
+													 conf.isApproximateTraffic(), config.getTimeline(),
+													 config.getUpdaterate(), config.getServerUpdaterate());
+		new DataChange(cl, true, true, CL_TRAFFIC_R, CL_TRAFFIC_S);
 
-        MonitorMain.monitors.add(conns);
-        dim = new Dimension(width, height);
-        conns.getPanel().setPreferredSize(dim);
-        row2.add(conns.getPanel());
+		MonitorMain.monitors.add(cl);
+		dim = new Dimension(width, height);
+		cl.getPanel().setPreferredSize(dim);
+		row2.add(cl.getPanel());
 
-        TigaseMonitorLine sm =
-                new TigaseMonitorLine("SM Traffic", "Packets/sec", 50, true, true, conf.isApproximateTraffic(),
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-        new DataChange(sm, true, true, SM_TRAFFIC_R, SM_TRAFFIC_S);
+		JPanel row3 = addRow(this);
 
-        MonitorMain.monitors.add(sm);
-        dim = new Dimension(width, height);
-        sm.getPanel().setPreferredSize(dim);
-        row2.add(sm.getPanel());
+		width = Math.round(config.getWidth() * row3_width_factor - 5);
+		height = Math.round(config.getHeight() * row3_height_factor - 100);
 
-        TigaseMonitorLine cl =
-                new TigaseMonitorLine("Cluster Traffic", "Packets/sec", 50, true, true, conf.isApproximateTraffic(),
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate());
-        new DataChange(cl, true, true, CL_TRAFFIC_R, CL_TRAFFIC_S);
+		int cnt = 0;
+		java.util.List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
-        MonitorMain.monitors.add(cl);
-        dim = new Dimension(width, height);
-        cl.getPanel().setPreferredSize(dim);
-        row2.add(cl.getPanel());
+		for (NodeConfig nodeConfig : nodeConfigs) {
+			distr.setValue(nodeConfig.getDescription(), 0);
+			distr.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
+			cpu.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			mem.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			sm.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			cl.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			conns.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
 
-        JPanel row3 = addRow(this);
+			if (cnt < 5) {
+				TigaseTextMonitor textMonitor = new TigaseTextMonitor(nodeConfig.getDescription(), nodeConfigs,
+																	  config.getUpdaterate(),
+																	  config.getServerUpdaterate());
 
-        width = Math.round(config.getWidth() * row3_width_factor - 5);
-        height = Math.round(config.getHeight() * row3_height_factor - 100);
+				new DataChange(textMonitor, false, false, textMonitor.getMetricsKeys()) {
+					public void update(String id, JavaJMXProxyOpt bean) {
+						monitor.update(id, bean);
+					}
+				};
 
-        int cnt = 0;
-        java.util.List<NodeConfig> nodeConfigs = config.getNodeConfigs();
+				MonitorMain.monitors.add(textMonitor);
+				dim = new Dimension(width, height);
+				textMonitor.getPanel().setPreferredSize(dim);
+				row3.add(textMonitor.getPanel());
 
-        for (NodeConfig nodeConfig : nodeConfigs) {
-            distr.setValue(nodeConfig.getDescription(), 0);
-            distr.setColor(nodeConfig.getDescription(), nodeConfig.getColor());
-            cpu.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            mem.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            sm.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            cl.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            conns.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+				if (cnt < 4) {
+					row3.add(Box.createRigidArea(new Dimension(5, 0)));
+				}
 
-            if (cnt < 5) {
-                TigaseTextMonitor textMonitor =
-                        new TigaseTextMonitor(nodeConfig.getDescription(), nodeConfigs,
-                                config.getUpdaterate(), config.getServerUpdaterate());
+				++cnt;
+			}
+		}
 
-                new DataChange(textMonitor, false, false, textMonitor.getMetricsKeys()) {
-                    public void update(String id, JavaJMXProxyOpt bean) {
-                        monitor.update(id, bean);
-                    }
-                };
-
-                MonitorMain.monitors.add(textMonitor);
-                dim = new Dimension(width, height);
-                textMonitor.getPanel().setPreferredSize(dim);
-                row3.add(textMonitor.getPanel());
-
-                if (cnt < 4) {
-                    row3.add(Box.createRigidArea(new Dimension(5, 0)));
-                }
-
-                ++cnt;
-            }
-        }
-
-    }
+	}
 }

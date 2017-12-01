@@ -31,95 +31,101 @@ import java.util.List;
 
 import static tigase.monitor.panel.DataChangeListener.*;
 
-public class TigasePanelMemory extends TigasePanel {
+public class TigasePanelMemory
+		extends TigasePanel {
 
-    private UNITS unitFactor = Configuration.UNITS.KB;
+	private UNITS unitFactor = Configuration.UNITS.KB;
 
-    public TigasePanelMemory(Configuration conf, JFrame mainFrame) {
-        super(conf, mainFrame);
+	public TigasePanelMemory(Configuration conf, JFrame mainFrame) {
+		super(conf, mainFrame);
 
-        unitFactor = conf.getMemoryUnit();
+		unitFactor = conf.getMemoryUnit();
 
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
-        setBackground(Color.DARK_GRAY);
-        setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
+		setBackground(Color.DARK_GRAY);
+		setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
 
-        JPanel row1 = addRow(this);
+		JPanel row1 = addRow(this);
 
-        int width, height;
-        width = Math.round(config.getWidth() - 5);
-        height = Math.round(config.getHeight() * row1_height_factor);
+		int width, height;
+		width = Math.round(config.getWidth() - 5);
+		height = Math.round(config.getHeight() * row1_height_factor);
 
-        // We want detailed statistics, and max HEAP size may change, hence displaying usage vs max is better.
-        TigaseMonitorLine monitorTotalHeap = addChart(config, "Total HEAP usage", unitFactor.toString(), 100, height, width, row1, HEAP_TOTAL_USAGE_USED, HEAP_TOTAL_USAGE_MAX);
+		// We want detailed statistics, and max HEAP size may change, hence displaying usage vs max is better.
+		TigaseMonitorLine monitorTotalHeap = addChart(config, "Total HEAP usage", unitFactor.toString(), 100, height,
+													  width, row1, HEAP_TOTAL_USAGE_USED, HEAP_TOTAL_USAGE_MAX);
 
-        JPanel row2 = addRow(this);
+		JPanel row2 = addRow(this);
 
-        width = Math.round(config.getWidth() * row2_width_factor - 5);
-        height = Math.round(config.getHeight() * row2_height_factor);
+		width = Math.round(config.getWidth() * row2_width_factor - 5);
+		height = Math.round(config.getHeight() * row2_height_factor);
 
-        TigaseMonitorLine monitorEdenUsage = addChart(config, "Eden usage", unitFactor.toString(), 50, height, width, row2, HEAP_EDEN_USAGE_USED, HEAP_EDEN_USAGE_MAX);
+		TigaseMonitorLine monitorEdenUsage = addChart(config, "Eden usage", unitFactor.toString(), 50, height, width,
+													  row2, HEAP_EDEN_USAGE_USED, HEAP_EDEN_USAGE_MAX);
 
-        TigaseMonitorLine monitorSurvivorUsage = addChart(config, "Survivor usage", unitFactor.toString(), 20, height, width, row2, HEAP_SURVIVOR_USAGE_USED, HEAP_SURVIVOR_USAGE_MAX);
+		TigaseMonitorLine monitorSurvivorUsage = addChart(config, "Survivor usage", unitFactor.toString(), 20, height,
+														  width, row2, HEAP_SURVIVOR_USAGE_USED,
+														  HEAP_SURVIVOR_USAGE_MAX);
 
-        TigaseMonitorLine monitorTenuredUsage = addChart(config, "Tenured usage", unitFactor.toString(), 100, height, width, row2, HEAP_OLD_USAGE_USED, HEAP_OLD_USAGE_MAX);
+		TigaseMonitorLine monitorTenuredUsage = addChart(config, "Tenured usage", unitFactor.toString(), 100, height,
+														 width, row2, HEAP_OLD_USAGE_USED, HEAP_OLD_USAGE_MAX);
 
+		JPanel row3 = addRow(this);
 
-        JPanel row3 = addRow(this);
+		int cnt = 0;
 
-        int cnt = 0;
+		List<NodeConfig> nodeConfigs = config.getNodeConfigs();
 
-        List<NodeConfig> nodeConfigs = config.getNodeConfigs();
+		for (NodeConfig nodeConfig : nodeConfigs) {
+			monitorTotalHeap.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			monitorSurvivorUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			monitorTenuredUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			monitorEdenUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
 
-        for (NodeConfig nodeConfig : nodeConfigs) {
-            monitorTotalHeap.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            monitorSurvivorUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            monitorTenuredUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
-            monitorEdenUsage.addSeries(nodeConfig.getDescription(), nodeConfig.getColor());
+			if (cnt < 5) {
+				TigaseTextMemoryMonitor textMonitor = new TigaseTextMemoryMonitor(nodeConfig.getDescription(),
+																				  nodeConfigs, config.getUpdaterate(),
+																				  config.getServerUpdaterate(),
+																				  unitFactor);
 
+				new DataChange(textMonitor, false, false, textMonitor.getMetricsKeys()) {
+					public void update(String id, JavaJMXProxyOpt bean) {
+						monitor.update(id, bean);
+					}
+				};
 
-            if (cnt < 5) {
-                TigaseTextMemoryMonitor textMonitor =
-                        new TigaseTextMemoryMonitor(nodeConfig.getDescription(), nodeConfigs,
-                                config.getUpdaterate(), config.getServerUpdaterate(), unitFactor);
+				MonitorMain.monitors.add(textMonitor);
+				Dimension dim = new Dimension(width, height);
+				textMonitor.getPanel().setPreferredSize(dim);
+				row3.add(textMonitor.getPanel());
 
-                new DataChange(textMonitor, false, false, textMonitor.getMetricsKeys()) {
-                    public void update(String id, JavaJMXProxyOpt bean) {
-                        monitor.update(id, bean);
-                    }
-                };
+				if (cnt < 4) {
+					row3.add(Box.createRigidArea(new Dimension(5, 0)));
+				}
 
-                MonitorMain.monitors.add(textMonitor);
-                Dimension dim = new Dimension(width, height);
-                textMonitor.getPanel().setPreferredSize(dim);
-                row3.add(textMonitor.getPanel());
+				++cnt;
+			}
+		}
+	}
 
-                if (cnt < 4) {
-                    row3.add(Box.createRigidArea(new Dimension(5, 0)));
-                }
+	@Override
+	protected TigaseMonitorLine addChart(Configuration config, String xTitle, String yTitle, double yAxisMax,
+										 int height, int width, JPanel row, String... dataIds) {
+		TigaseMonitorLine monitor = new TigaseMonitorLine(xTitle, yTitle, yAxisMax, false, false, true,
+														  config.getTimeline(), config.getUpdaterate(),
+														  config.getServerUpdaterate()) {
+			@Override
+			protected int getDivisionFactor() {
+				return unitFactor.getFactor();
+			}
+		};
+		new DataChange(monitor, false, config.getLoadHistory(), dataIds);
 
-                ++cnt;
-            }
-        }
-    }
+		MonitorMain.addMonitor(monitor);
 
-    @Override
-    protected TigaseMonitorLine addChart(Configuration config, String xTitle, String yTitle, double yAxisMax, int height, int width, JPanel row, String... dataIds) {
-        TigaseMonitorLine monitor =
-                new TigaseMonitorLine(xTitle, yTitle, yAxisMax, false, false, true,
-                        config.getTimeline(), config.getUpdaterate(), config.getServerUpdaterate()) {
-                    @Override
-                    protected int getDivisionFactor() {
-                        return unitFactor.getFactor();
-                    }
-                };
-        new DataChange(monitor, false, config.getLoadHistory(), dataIds);
+		monitor.getPanel().setPreferredSize(new Dimension(width, height));
+		row.add(monitor.getPanel());
+		return monitor;
 
-        MonitorMain.addMonitor(monitor);
-
-        monitor.getPanel().setPreferredSize(new Dimension(width, height));
-        row.add(monitor.getPanel());
-        return monitor;
-
-    }
+	}
 }

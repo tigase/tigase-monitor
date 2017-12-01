@@ -32,86 +32,88 @@ import java.util.List;
 /**
  * Created by wojtek on 19/07/16.
  */
-public class BackgroundSaver extends Thread {
-    private MonitorMain monitorMain;
-    private long delay = 0;
-    private File dir = null;
-    private String ext = null;
-    private boolean exitOnComplete = false;
-    private long interval = 0;
-    private int repeat = 1;
+public class BackgroundSaver
+		extends Thread {
 
-    public BackgroundSaver(MonitorMain monitorMain, File dir, String ext, boolean exitOnComplete, long delay,
-                           int repeat, long interval) {
-        this.monitorMain = monitorMain;
-        this.dir = dir;
-        this.ext = ext;
-        this.exitOnComplete = exitOnComplete;
-        this.delay = delay;
-        this.repeat = (repeat < 1) ? 1 : repeat;
-        this.interval = interval;
-    }
+	private long delay = 0;
+	private File dir = null;
+	private boolean exitOnComplete = false;
+	private String ext = null;
+	private long interval = 0;
+	private MonitorMain monitorMain;
+	private int repeat = 1;
 
-    @Override
-    public void run() {
-        if (delay > 0) {
-            try {
-                sleep(delay);
-            } catch (Exception e) {
-            }
-        }
+	public BackgroundSaver(MonitorMain monitorMain, File dir, String ext, boolean exitOnComplete, long delay,
+						   int repeat, long interval) {
+		this.monitorMain = monitorMain;
+		this.dir = dir;
+		this.ext = ext;
+		this.exitOnComplete = exitOnComplete;
+		this.delay = delay;
+		this.repeat = (repeat < 1) ? 1 : repeat;
+		this.interval = interval;
+	}
 
-        if (!dir.exists()) {
-            dir.mkdirs();
-        }
+	@Override
+	public void run() {
+		if (delay > 0) {
+			try {
+				sleep(delay);
+			} catch (Exception e) {
+			}
+		}
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HHmmss_");
+		if (!dir.exists()) {
+			dir.mkdirs();
+		}
 
-        for (int j = 0; j < repeat; j++) {
-            String datetime = sdf.format(new Date());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HHmmss_");
 
-            for (TigaseMonitor monitor : MonitorMain.monitors) {
-                int i = 0;
-                int w = monitor.getPanel().getWidth();
-                int h = monitor.getPanel().getHeight();
-                List<JFreeChart> charts = monitor.getCharts();
+		for (int j = 0; j < repeat; j++) {
+			String datetime = sdf.format(new Date());
 
-                if (charts != null) {
-                    for (JFreeChart chart : charts) {
-                        File file =
-                                // new File(dir, datetime + (++i) + "_" +
-                                // chart.getTitle().getText() + ext);
-                                new File(dir, datetime + (++i) + "_"
-                                        + chart.getTitle().getText().replaceAll("[^\\d\\w\\s]", "_") + ext);
+			for (TigaseMonitor monitor : MonitorMain.monitors) {
+				int i = 0;
+				int w = monitor.getPanel().getWidth();
+				int h = monitor.getPanel().getHeight();
+				List<JFreeChart> charts = monitor.getCharts();
 
-                        try {
-                            JFreeChart ch = (JFreeChart) chart.clone();
+				if (charts != null) {
+					for (JFreeChart chart : charts) {
+						File file =
+								// new File(dir, datetime + (++i) + "_" +
+								// chart.getTitle().getText() + ext);
+								new File(dir, datetime + (++i) + "_" +
+										chart.getTitle().getText().replaceAll("[^\\d\\w\\s]", "_") + ext);
 
-                            if (ext == ".png") {
-                                ChartUtilities.saveChartAsPNG(file, ch, w, h);
-                            }
+						try {
+							JFreeChart ch = (JFreeChart) chart.clone();
 
-                            if (ext == ".jpg") {
-                                ChartUtilities.saveChartAsJPEG(file, ch, w, h);
-                            }
-                        } catch (Exception e) {
-                            System.err.println("Can't save file: " + file);
-                        }
-                    }
-                }
-            }
+							if (ext == ".png") {
+								ChartUtilities.saveChartAsPNG(file, ch, w, h);
+							}
 
-            if ((interval > 0) && (j + 1 < repeat)) {
-                try {
-                    sleep(interval);
-                } catch (Exception e) {
-                }
-            }
-        }
+							if (ext == ".jpg") {
+								ChartUtilities.saveChartAsJPEG(file, ch, w, h);
+							}
+						} catch (Exception e) {
+							System.err.println("Can't save file: " + file);
+						}
+					}
+				}
+			}
 
-        if (exitOnComplete) {
-            monitorMain.dispose();
-            System.exit(0);
-        }
-    }
+			if ((interval > 0) && (j + 1 < repeat)) {
+				try {
+					sleep(interval);
+				} catch (Exception e) {
+				}
+			}
+		}
+
+		if (exitOnComplete) {
+			monitorMain.dispose();
+			System.exit(0);
+		}
+	}
 }

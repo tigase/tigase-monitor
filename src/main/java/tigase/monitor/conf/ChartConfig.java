@@ -25,6 +25,7 @@ import java.util.Properties;
  * @author Artur Hefczyc Created Jun 9, 2011
  */
 public class ChartConfig {
+
 	private static final String CUSTOM_CHART_STRING_DEF = "Not set";
 	private static final String CUSTOM_CHART_INT_DEF = "100";
 	private static final String CUSTOM_CHART_BOOL_DEF = "false";
@@ -42,7 +43,7 @@ public class ChartConfig {
 
 	public void addProperty(String prop_key, String property) {
 		props.put(prop_key, property);
-		if(prop_key.startsWith(CUSTOM_CHART_SERIES_KEY)) {
+		if (prop_key.startsWith(CUSTOM_CHART_SERIES_KEY)) {
 			series.add(property);
 		}
 	}
@@ -64,12 +65,12 @@ public class ChartConfig {
 		String val_str = props.getProperty(CUSTOM_CHART_CNT_TOTALS_KEY, CUSTOM_CHART_BOOL_DEF);
 		return Boolean.parseBoolean(val_str);
 	}
-	
+
 	public boolean countDelta() {
 		String val_str = props.getProperty(CUSTOM_CHART_CNT_DELTA_KEY, CUSTOM_CHART_BOOL_DEF);
 		return Boolean.parseBoolean(val_str);
 	}
-	
+
 	public String[] getSeries() {
 		return series.toArray(new String[series.size()]);
 	}

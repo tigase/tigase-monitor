@@ -21,16 +21,19 @@ package tigase.monitor.panel;
 import tigase.stats.JavaJMXProxyOpt;
 import tigase.util.DataTypes;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
 
 /**
  * @author Artur Hefczyc Created May 28, 2011
  */
-public class DataChange implements DataChangeListener {
-	public static final Map<String, String> msgMapping =
-			new LinkedHashMap<String, String>();
+public class DataChange
+		implements DataChangeListener {
+
+	public static final Map<String, String> msgMapping = new LinkedHashMap<String, String>();
 
 	static {
 		msgMapping.put(CPU_USAGE, "CPU");
@@ -38,13 +41,12 @@ public class DataChange implements DataChangeListener {
 		msgMapping.put(NONHEAP_USAGE, "Non-Heap Memory");
 	}
 
-	protected TigaseMonitor monitor = null;
-	protected List<String> dataIds = new CopyOnWriteArrayList<>();
 	protected boolean countDelta = false;
+	protected List<String> dataIds = new CopyOnWriteArrayList<>();
 	protected boolean loadHistory = true;
+	protected TigaseMonitor monitor = null;
 
-	public DataChange(TigaseMonitor monitor, boolean countDelta, boolean loadHistory,
-			String... dataIds) {
+	public DataChange(TigaseMonitor monitor, boolean countDelta, boolean loadHistory, String... dataIds) {
 		this.monitor = monitor;
 		this.countDelta = countDelta;
 		this.loadHistory = loadHistory;
@@ -57,7 +59,7 @@ public class DataChange implements DataChangeListener {
 	}
 
 	public String[] getDataIds() {
-		String[] array = new String[ dataIds.size() ];
+		String[] array = new String[dataIds.size()];
 		dataIds.toArray(array);
 		return array;
 	}

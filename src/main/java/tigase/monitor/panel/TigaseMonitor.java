@@ -28,29 +28,29 @@ import java.util.Map;
 
 /**
  * Created: Sep 9, 2009 10:01:51 PM
- * 
+ *
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
 public abstract class TigaseMonitor {
 
-	private Map<String, Boolean> ids = new LinkedHashMap<String, Boolean>();
 	private DataChangeListener dataListener = null;
-	private int updaterate = 10;
+	private Map<String, Boolean> historyLoaded = new LinkedHashMap<String, Boolean>(4);
+	private Map<String, Boolean> ids = new LinkedHashMap<String, Boolean>();
 	private int serverUpdaterate = 10;
 	private String title = null;
-	private Map<String, Boolean> historyLoaded = new LinkedHashMap<String, Boolean>(4);
+	private int updaterate = 10;
 
 	public TigaseMonitor(String title, int updaterate, int serverUpdaterate) {
 		this.updaterate = updaterate;
 		this.title = title;
 		this.serverUpdaterate = serverUpdaterate;
 	}
-	
+
 	public String getTitle() {
 		return title;
 	}
-	
+
 	public void connected(String id, JavaJMXProxyOpt servBean) {
 		ids.put(id, Boolean.TRUE);
 	}
@@ -66,13 +66,13 @@ public abstract class TigaseMonitor {
 	public abstract List<JFreeChart> getCharts();
 
 	public abstract JPanel getPanel();
-	
-	public void setDataChangeListener(DataChangeListener dataListener) {
-		this.dataListener  = dataListener;
-	}
-	
+
 	public DataChangeListener getDataChangeListener() {
 		return dataListener;
+	}
+
+	public void setDataChangeListener(DataChangeListener dataListener) {
+		this.dataListener = dataListener;
 	}
 
 	public void setUpdate(int updaterate) {
@@ -86,11 +86,11 @@ public abstract class TigaseMonitor {
 	public int getServerUpdaterate() {
 		return serverUpdaterate;
 	}
-	
+
 	public synchronized void loadHistory(String id, double[] history, boolean calcDelta) {
 		historyLoaded.put(id, true);
 	}
-	
+
 	public boolean historyLoaded(String id) {
 		return historyLoaded.get(id) != null;
 	}

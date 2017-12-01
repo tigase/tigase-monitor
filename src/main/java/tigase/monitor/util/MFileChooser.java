@@ -18,10 +18,10 @@
  */
 package tigase.monitor.util;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.Arrays;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.JFileChooser;
 
 /**
  * Created: Sep 10, 2009 6:49:24 PM
@@ -29,7 +29,8 @@ import javax.swing.JFileChooser;
  * @author <a href="mailto:artur.hefczyc@tigase.org">Artur Hefczyc</a>
  * @version $Rev: 4 $
  */
-public class MFileChooser extends JFileChooser {
+public class MFileChooser
+		extends JFileChooser {
 
 	public MFileChooser(final String descr, final String... exts) {
 		super();
