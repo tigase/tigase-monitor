@@ -55,7 +55,7 @@ public class TigaseTextMonitor
 	private JLabel memMax = null;
 	private JLabel memUsed = null;
 	private String[] metrics = {CPU_USAGE, HEAP_USAGE, NONHEAP_USAGE, HEAP_REGION_MAX, HEAP_REGION_USED, SM_TRAFFIC_R,
-								SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, CL_TRAFFIC_R, CL_TRAFFIC_S,
+								SM_TRAFFIC_S, QUEUE_WAIT, QUEUE_OVERFLOW, C2S_CONNECTIONS, BOSH_CONNECTIONS, WS2S_CONNECTIONS, CL_TRAFFIC_R, CL_TRAFFIC_S,
 								CL_CACHE_SIZE, SM_QUEUE_WAIT, CL_QUEUE_WAIT, CL_IO_QUEUE_WAIT};
 	private long old_cl_traffic = 0;
 	private long old_sm_traffic = 0;

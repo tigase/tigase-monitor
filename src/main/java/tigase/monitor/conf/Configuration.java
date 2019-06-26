@@ -18,9 +18,12 @@
  */
 package tigase.monitor.conf;
 
+import java.awt.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Created: Sep 9, 2009 6:24:08 PM
@@ -70,6 +73,23 @@ public class Configuration {
 	private static final String APPROXIMATE_TRAFFIC_DEF = "false";
 	private static final String DISPLAY_ALARM_KEY = "display-alarm";
 	private static final String DISPLAY_ALARM_DEF = "true";
+
+	private static final Queue<String> colours = new LinkedList<>();
+
+	static {
+		colours.offer("blue");
+		colours.offer("green");
+		colours.offer("red");
+		colours.offer("white");
+		colours.offer("black");
+		colours.offer("orange");
+		colours.offer("pink");
+		colours.offer("cyan");
+		colours.offer("dark_gray");
+		colours.offer("gray");
+		colours.offer("light_gray");
+		colours.offer("magenta");
+	}
 
 	public enum UNITS {
 		KB(1),
@@ -126,6 +146,16 @@ public class Configuration {
 				int port = 9050;
 				String[] node_arr = node.split(":");
 				String user = userName;
+				String colour;
+				String hostname;
+
+				if (node_arr.length > 1) {
+					colour = node_arr[0];
+					hostname = node_arr[1];
+				} else {
+					colour = (colours.peek() != null ? colours.poll().toString() : "blue");
+					hostname = node_arr[0];
+				}
 
 				if (node_arr.length > 2) {
 					user = node_arr[2];
@@ -146,7 +176,7 @@ public class Configuration {
 					}
 				}
 
-				nodes.add(new NodeConfig(node_arr[0], node_arr[0], node_arr[1], port, user, pass));
+				nodes.add(new NodeConfig(colour, colour, hostname, port, user, pass));
 			}
 		}
 
