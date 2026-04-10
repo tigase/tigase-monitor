@@ -2,3 +2,4 @@ dists
 libs
 lib
 *.properties
+target
