@@ -17,12 +17,10 @@ Stand-alone application for the Tigase XMPP Server monitoring and management con
 
 When looking for support, please first search for answers to your question in the available online channels:
 
-* Our online documentation: [Tigase Docs](https://docs.tigase.net/)
-* Our online forums: [Tigase Forums](https://help.tigase.net/portal/community)
-* Our online Knowledge Base [Tigase KB](https://help.tigase.net/portal/kb)
+* Our online documentation: [Tigase Docs](https://docs.tigase.net)
+* Existing issues in relevant project, for Tigase Server it's: [Tigase XMPP Server GitHub issues](https://github.com/tigase/jaxmpp/issues)
 
-If you didn't find an answer in the resources above, feel free to submit your question to either our 
-[community portal](https://help.tigase.net/portal/community) or open a [support ticket](https://help.tigase.net/portal/newticket).
+If you didn't find an answer in the resources above, feel free to submit your question as [new issue on GitHub](https://github.com/tigase/jaxmpp/issues/new/choose) or, if you have valid support subscription, open [new support ticket](https://tigase.net/technical-support).
 
 # Downloads
 
